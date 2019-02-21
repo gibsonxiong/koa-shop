@@ -1,4 +1,5 @@
 const Sequelize = require('sequelize');
+const {Op} = Sequelize;
 
 var config = {
     dialect: 'mysql',
@@ -7,6 +8,43 @@ var config = {
     password: 'qwer1234',
     host: '192.168.3.168',
     port: 3306,
+};
+
+const operatorsAliases = {
+    $eq: Op.eq,
+    $ne: Op.ne,
+    $gte: Op.gte,
+    $gt: Op.gt,
+    $lte: Op.lte,
+    $lt: Op.lt,
+    $not: Op.not,
+    $in: Op.in,
+    $notIn: Op.notIn,
+    $is: Op.is,
+    $like: Op.like,
+    $notLike: Op.notLike,
+    $iLike: Op.iLike,
+    $notILike: Op.notILike,
+    $regexp: Op.regexp,
+    $notRegexp: Op.notRegexp,
+    $iRegexp: Op.iRegexp,
+    $notIRegexp: Op.notIRegexp,
+    $between: Op.between,
+    $notBetween: Op.notBetween,
+    $overlap: Op.overlap,
+    $contains: Op.contains,
+    $contained: Op.contained,
+    $adjacent: Op.adjacent,
+    $strictLeft: Op.strictLeft,
+    $strictRight: Op.strictRight,
+    $noExtendRight: Op.noExtendRight,
+    $noExtendLeft: Op.noExtendLeft,
+    $and: Op.and,
+    $or: Op.or,
+    $any: Op.any,
+    $all: Op.all,
+    $values: Op.values,
+    $col: Op.col
 };
 
 var sequelize = new Sequelize(config.database, config.username, config.password, {
@@ -20,7 +58,8 @@ var sequelize = new Sequelize(config.database, config.username, config.password,
     define: {
         timestamps: false,
     },
-    timezone: '+08:00' //东八时区
+    timezone: '+08:00', //东八时区
+    operatorsAliases
 });
 
 sequelize.import('../models/user');

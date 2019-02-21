@@ -14,7 +14,7 @@ router.get('/', async function (ctx) {
     }
     if(searchText){
       where.name = {
-        [Op.like]:`%${searchText}%`
+        $like:`%${searchText}%`
       }
     }
     let rows = await models.item.findAll({
@@ -53,7 +53,7 @@ router.get('/:itemId', async function (ctx) {
     propnames = await models.propname.findAll({
       where:{
         id:{
-          [Op.in]:propnames
+          $in:propnames
         }
       }
     });
@@ -63,7 +63,7 @@ router.get('/:itemId', async function (ctx) {
         return models.propvalue.findAll({
           where:{
             id:{
-              [Op.in]:item
+              $in:item
             }
           }
         })

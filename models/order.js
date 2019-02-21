@@ -81,6 +81,27 @@ module.exports = function(sequelize, DataTypes) {
     userCouponId: {
       type: DataTypes.INTEGER(11),
       allowNull: true
+    },
+    cancelReason:{
+      type: DataTypes.STRING(11),
+      allowNull: true
+    },
+    createTime: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue:DataTypes.NOW
+    },
+    payTime:{
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    deliverTime:{
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    endTime:{
+      type: DataTypes.DATE,
+      allowNull: true,
     }
   }, {
     tableName: 'order'
