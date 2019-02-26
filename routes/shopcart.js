@@ -22,14 +22,14 @@ router.get('/', tokenMiddleware(), async function (ctx, next) {
 
     await Promise.each(rows, async row => {
       row.item.setDataValue('imgList', row.item.imgList.split(','));
-      let propvalues = row.sku.propvalueList.split('|').map(item => item.split(':')[1]);
-      let values = await models.propvalue.findAll({
-        where: {
-          id: propvalues
-        },
-        raw: true
-      })
-      row.sku.setDataValue('propDesc', values.map(value=>value.name).join(';'));
+      // let propvalues = row.sku.propvalueList.split('|').map(item => item.split(':')[1]);
+      // let values = await models.propvalue.findAll({
+      //   where: {
+      //     id: propvalues
+      //   },
+      //   raw: true
+      // })
+      // row.sku.setDataValue('propDesc', values.map(value=>value.name).join(';'));
     });
 
     ctx.sendRes(rows);
@@ -48,14 +48,30 @@ router.put('/', tokenMiddleware(), async function (ctx, next) {
       quantity
     } = ctx.request.body;
 
-    let row = await models.shopcart.create({
-      userId: user.id,
-      itemId,
-      skuId,
-      quantity
+    let row = await models.shopcart.findOne({
+      where:{
+        userId: user.id,
+        itemId,
+        skuId,
+      }
     });
 
-    if (!row) throw new Error('加入购物车失败');
+
+    //该商品之前不在购物车
+    if(row){
+      await row.increment('quantity',{
+        by:quantity
+      });
+    }else{
+      row = await models.shopcart.create({
+        userId: user.id,
+        itemId,
+        skuId,
+        quantity
+      });
+
+      if (!row) throw new Error('加入购物车失败');
+    }
 
     ctx.sendRes(null, 0, '加入购物车成功');
   } catch (err) {

@@ -28,6 +28,11 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.DECIMAL,
       allowNull: false,
       defaultValue: '0.00'
+    },
+    createTime:{
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue:DataTypes.NOW  
     }
   }, {
     tableName: 'footprint'

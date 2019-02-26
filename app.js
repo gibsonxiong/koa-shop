@@ -44,7 +44,8 @@ let routes = [
   require('./routes/shopcart'),
   require('./routes/favorite'),
   require('./routes/order'),
-  require('./routes/coupon')
+  require('./routes/coupon'),
+  require('./routes/rate')
 ];
 routes.forEach(route=>{
   app.use(route.routes(), route.allowedMethods());

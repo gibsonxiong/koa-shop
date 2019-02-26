@@ -16,6 +16,10 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING(255),
       allowNull: false
     },
+    propvalueTextList:{
+      type: DataTypes.STRING(255),
+      allowNull: false
+    },
     quantity: {
       type: DataTypes.INTEGER(11),
       allowNull: false,

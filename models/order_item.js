@@ -26,9 +26,9 @@ module.exports = function(sequelize, DataTypes) {
     },
     itemPropvalues: {
       type: DataTypes.STRING(255),
-      allowNull: true
+      allowNull: false
     },
-    price: {
+    itemPrice: {
       type: DataTypes.DECIMAL,
       allowNull: false,
       defaultValue: '0.00'

@@ -315,8 +315,8 @@ router.post('/create', tokenMiddleware(), async function (ctx, next) {
           itemImg: orderItem.item.getDataValue('imgList')[0],
           itemId: orderItem.item.id,
           itemName: orderItem.item.name,
-          itemPropvalues: orderItem.sku.propvalueList,
-          price: orderItem.sku.price,
+          itemPropvalues: orderItem.sku.propvalueTextList,
+          itemPrice: orderItem.sku.price,
           quantity: orderItem.quantity
         }
       });
@@ -529,6 +529,8 @@ router.delete('/:orderId', tokenMiddleware(), async function (ctx, next) {
         userId:user.id
       }
     });
+
+    //todo:子订单删除
 
     if (num === 0) throw new Error('该订单不存在');
 
