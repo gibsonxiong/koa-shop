@@ -4,6 +4,8 @@ const {
 } = require('../db');
 const axios = require('axios');
 const tokenMiddleware = require('../middlewares/token');
+const {upload, getUploadPath} = require('../utils/upload')
+
 
 router.get('/', async (ctx, next) => {
   await ctx.render('index', {
@@ -241,6 +243,21 @@ router.get('/deliver', async function (ctx, next) {
       type,
       data: res.data
     });
+
+  } catch (err) {
+    ctx.sendRes(null, -1, err.message);
+  }
+});
+
+//上传
+router.put('/upload' , upload.array('img'), async function (ctx, next) {
+  try {
+    let files = ctx.req.files;
+    files.forEach((file)=>{
+      file.src = getUploadPath(file.filename);
+    });
+    
+    ctx.sendRes(files, 0, '上传成功');
 
   } catch (err) {
     ctx.sendRes(null, -1, err.message);

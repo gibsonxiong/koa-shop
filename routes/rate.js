@@ -42,6 +42,10 @@ router.get('/items/:itemId', tokenMiddleware(), async function (ctx, next) {
       ]
     });
 
+    rows.forEach(row=>{
+      row.setDataValue('rateImgList', row.rateImgList ? row.rateImgList.split(',') : []);
+    });
+
     ctx.sendRes(rows);
   } catch (err) {
     ctx.sendRes(null, -1, err.message);
@@ -49,7 +53,7 @@ router.get('/items/:itemId', tokenMiddleware(), async function (ctx, next) {
 });
 
 //评价详情
-router.get('/rateId', tokenMiddleware(), async function (ctx, next) {
+router.get('/:rateId', tokenMiddleware(), async function (ctx, next) {
   try {
     let user = ctx.user;
     let {rateId} = ctx.params;
@@ -57,10 +61,15 @@ router.get('/rateId', tokenMiddleware(), async function (ctx, next) {
       where: {
         id:rateId,
         userId: user.id
-      }
+      },
+      include:[
+        {model:models.user}
+      ]
     });
 
     if(!row) throw new Error('该评价不存在');
+
+    row.setDataValue('rateImgList', row.rateImgList.split(','));
 
     ctx.sendRes(row);
   } catch (err) {
@@ -103,7 +112,7 @@ router.put('/', tokenMiddleware(), async function (ctx, next) {
         itemPrice:orderItem.itemPrice,
         score:p.score,
         content:p.content,
-        rateImgList:p.rateImgList
+        rateImgList:p.rateImgList ? p.rateImgList.join(',') : undefined
       });
     });
     
