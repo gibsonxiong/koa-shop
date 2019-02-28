@@ -26,7 +26,7 @@ router.get('/', async function (ctx) {
         $like: `%${searchText}%`
       }
     }
-    pageSize = pageSize || 10;
+    pageSize = Number(pageSize || 10);
     let rows = await models.item.findAll({
       where,
       include:[

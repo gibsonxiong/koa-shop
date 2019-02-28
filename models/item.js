@@ -9,7 +9,7 @@ module.exports = function (sequelize, DataTypes) {
       autoIncrement: true
     },
     name: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(100),
       allowNull: false
     },
     desc: {
@@ -21,7 +21,7 @@ module.exports = function (sequelize, DataTypes) {
       allowNull: false
     },
     imgList: {
-      type: DataTypes.STRING(500),
+      type: DataTypes.STRING(2000),
       allowNull: false
     },
     propvalueList: {
@@ -34,7 +34,7 @@ module.exports = function (sequelize, DataTypes) {
       defaultValue: '0'
     },
     detail: {
-      type: DataTypes.STRING(10000),
+      type: DataTypes.TEXT,
       allowNull: true
     }
   }, {

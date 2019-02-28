@@ -80,6 +80,7 @@ sequelize.import('../models/user_addr');
 sequelize.import('../models/footprint');
 sequelize.import('../models/test');
 sequelize.import('../models/rate');
+sequelize.import('../models/refund');
 
 const {
     models
@@ -115,6 +116,10 @@ models.user_coupon.belongsTo(models.coupon, {
 
 models.rate.belongsTo(models.user, {
     foreignKey: 'userId'
+});
+
+models.refund.belongsTo(models.order_item, {
+    foreignKey: 'orderItemId'
 });
 
 module.exports = sequelize;

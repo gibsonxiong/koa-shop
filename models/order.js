@@ -19,7 +19,7 @@ module.exports = function(sequelize, DataTypes) {
     status:{
       type: DataTypes.STRING(2),
       allowNull: false,
-      defaultValue: '0'
+      defaultValue: '1'
     },
     title: {
       type: DataTypes.STRING(255),
