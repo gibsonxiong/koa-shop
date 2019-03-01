@@ -9,8 +9,9 @@ const utils = require('../utils');
 
 router.prefix('/items')
 
-router.get('/', async function (ctx) {
+router.get('/', tokenMiddleware(false), async function (ctx) {
   try {
+    let user = ctx.user;
     let {
       categoryId,
       searchText,
@@ -25,20 +26,44 @@ router.get('/', async function (ctx) {
       where.name = {
         $like: `%${searchText}%`
       }
+
+      //保存搜索历史
+      if (user) {
+        let [searchHistory,created] = await models.search_history.findCreateFind({
+          defaults: {
+            userId: user.id,
+            keywords: searchText,
+          },
+          where: {
+            userId: user.id
+          }
+        });
+
+        if(!created) {
+          let keywords = searchHistory.keywords.split(',');
+          keywords.unshift(searchText);
+          keywords = utils.uniqueArray(keywords).slice(0,10).join(',');
+          let res = searchHistory.update({
+            keywords
+          });
+
+        }
+      }
+
     }
     pageSize = Number(pageSize || 10);
     let rows = await models.item.findAll({
       where,
-      include:[
-        {model:models.sku}
-      ],
+      include: [{
+        model: models.sku
+      }],
       limit: pageSize,
-      offset: ((pageIndex || 1) - 1 )* pageSize,
+      offset: ((pageIndex || 1) - 1) * pageSize,
     });
 
     rows.forEach(row => {
       row.dataValues.imgList = row.imgList.split(',');
-      
+
       let prices = row.dataValues.skus.map(item => item.price);
       row.dataValues.minPrice = prices.length === 0 ? 0 : Math.min(...prices);
       row.dataValues.maxPrice = prices.length === 0 ? 0 : Math.max(...prices);
@@ -58,8 +83,8 @@ router.get('/footprints', tokenMiddleware(), async function (ctx) {
       where: {
         userId: user.id
       },
-      order:[
-        ['createTime','desc']
+      order: [
+        ['createTime', 'desc']
       ],
       include: [{
         model: models.item
@@ -145,21 +170,21 @@ router.get('/:itemId', tokenMiddleware(false), async function (ctx) {
     //记录足迹
     if (user) {
       let footprintRow = await models.footprint.findOne({
-        where:{
+        where: {
           itemId,
-          userId:user.id,
+          userId: user.id,
           createTime: {
-            $gte:utils.getDayStartTime(),
-            $lte:utils.getDayEndTime()
+            $gte: utils.getDayStartTime(),
+            $lte: utils.getDayEndTime()
           }
         }
       });
 
-      if(footprintRow){
+      if (footprintRow) {
         footprintRow.update({
-          createTime:new Date()
+          createTime: new Date()
         });
-      }else{
+      } else {
         footprintRow = await models.footprint.create({
           userId: user.id,
           itemId,

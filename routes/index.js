@@ -264,4 +264,57 @@ router.put('/upload' , upload.array('img'), async function (ctx, next) {
   }
 });
 
+//搜索联想
+router.get('/suggest' , async function (ctx, next) {
+  try {
+    let q = ctx.query.q;
+
+    q = encodeURIComponent(q);
+    
+    let res = (await axios.get(`https://suggest.taobao.com/sug?code=utf-8&q=${q}`)).data;
+
+    ctx.sendRes(res.result);
+  } catch (err) {
+    ctx.sendRes(null, -1, err.message);
+  }
+});
+
+//用户搜索历史
+router.get('/searchs' , tokenMiddleware(false), async function (ctx, next) {
+  try {
+    let user = ctx.user;
+
+    if(!user) return ctx.sendRes([]);
+
+    let row = await models.search_history.findOne({
+      where: {
+        userId: user.id
+      }
+    });
+
+    let searchs = row && row.keywords ? row.keywords.split(',') : [];
+
+    ctx.sendRes(searchs);
+  } catch (err) {
+    ctx.sendRes(null, -1, err.message);
+  }
+});
+
+//用户搜索历史
+router.delete('/searchs' , tokenMiddleware(), async function (ctx, next) {
+  try {
+    let user = ctx.user;
+
+    let number = await models.search_history.destroy({
+      where: {
+        userId: user.id
+      }
+    });
+
+    ctx.sendRes(null,0,'删除搜索历史成功');
+  } catch (err) {
+    ctx.sendRes(null, -1, err.message);
+  }
+});
+
 module.exports = router

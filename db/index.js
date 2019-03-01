@@ -81,6 +81,7 @@ sequelize.import('../models/footprint');
 sequelize.import('../models/test');
 sequelize.import('../models/rate');
 sequelize.import('../models/refund');
+sequelize.import('../models/search_history');
 
 const {
     models
