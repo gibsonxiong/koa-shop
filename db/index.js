@@ -6,7 +6,7 @@ var config = {
     database: 'shop',
     username: 'root',
     password: 'qwer1234',
-    host: '192.168.3.168',
+    host: '129.204.29.9',
     port: 3306,
 };
 

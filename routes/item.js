@@ -162,10 +162,20 @@ router.get('/:itemId', tokenMiddleware(false), async function (ctx) {
       sku.dataValues.propvalues = values;
     });
 
+    //商品统计表
+    let itemCount = await models.item_count.findOne({
+      where:{
+        itemId
+      }
+    });
+
     row.dataValues.skus = skuRows;
     let prices = row.dataValues.skus.map(item => item.price);
     row.dataValues.minPrice = prices.length === 0 ? 0 : Math.min(...prices);
     row.dataValues.maxPrice = prices.length === 0 ? 0 : Math.max(...prices);
+    row.dataValues.postFee = 0;
+    row.dataValues.saleCount = itemCount? itemCount.saleCount : 0;
+    row.dataValues.rateCount = itemCount? itemCount.rateCount : 0;
 
     //记录足迹
     if (user) {

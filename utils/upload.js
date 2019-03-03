@@ -11,5 +11,5 @@ const storage = multer.diskStorage({
 exports.upload =  multer({ storage: storage });
 
 exports.getUploadPath = function(path){
-  return 'http://192.168.3.168:3001/upload/temp/' + path;
+  return 'http://192.168.43.193:3001/upload/temp/' + path;
 }

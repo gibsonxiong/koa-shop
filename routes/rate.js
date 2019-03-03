@@ -3,7 +3,9 @@ const {
   models
 } = require('../db');
 const tokenMiddleware = require('../middlewares/token');
-const Promise  = require('bluebird')
+const Promise = require('bluebird');
+const itemCountCtrl = require('../controllers/item_count');
+
 router.prefix('/rates');
 
 
@@ -15,8 +17,8 @@ router.get('/', tokenMiddleware(), async function (ctx, next) {
       where: {
         userId: user.id
       },
-      include:[
-        {model:models.user}
+      include: [
+        { model: models.user }
       ]
     });
 
@@ -27,22 +29,21 @@ router.get('/', tokenMiddleware(), async function (ctx, next) {
 });
 
 //商品评价列表
-router.get('/items/:itemId', tokenMiddleware(), async function (ctx, next) {
+router.get('/items/:itemId', tokenMiddleware(false), async function (ctx, next) {
   try {
     let user = ctx.user;
-    let {itemId} = ctx.params;
+    let { itemId } = ctx.params;
 
     let rows = await models.rate.findAll({
       where: {
-        userId: user.id,
         itemId
       },
-      include:[
-        {model:models.user}
+      include: [
+        { model: models.user }
       ]
     });
 
-    rows.forEach(row=>{
+    rows.forEach(row => {
       row.setDataValue('rateImgList', row.rateImgList ? row.rateImgList.split(',') : []);
     });
 
@@ -56,18 +57,18 @@ router.get('/items/:itemId', tokenMiddleware(), async function (ctx, next) {
 router.get('/:rateId', tokenMiddleware(), async function (ctx, next) {
   try {
     let user = ctx.user;
-    let {rateId} = ctx.params;
+    let { rateId } = ctx.params;
     let row = await models.rate.findOne({
       where: {
-        id:rateId,
+        id: rateId,
         userId: user.id
       },
-      include:[
-        {model:models.user}
+      include: [
+        { model: models.user }
       ]
     });
 
-    if(!row) throw new Error('该评价不存在');
+    if (!row) throw new Error('该评价不存在');
 
     row.setDataValue('rateImgList', row.rateImgList.split(','));
 
@@ -95,27 +96,42 @@ router.put('/', tokenMiddleware(), async function (ctx, next) {
       }
     */
     let params
-     = ctx.request.body;
+      = ctx.request.body;
     let createData = [];
+
+    //todo:事务
+    let order = await models.order.findById(params.orderId, {
+      where: {
+        userId: user.id
+      }
+    });
+
+    if (!order) throw new Error('该订单不存在');
+    if(order.status != '4') throw new Error('该订单状态异常');
+
+    await order.update({
+      status: '5'
+    });
 
     await Promise.each(params.data, async p => {
       let orderItem = await models.order_item.findById(p.orderItemId);
 
       createData.push({
-        orderId:params.orderId,
-        orderItemId:p.orderItemId,
+        orderId: params.orderId,
+        orderItemId: p.orderItemId,
         userId: user.id,
-        itemId:p.itemId,
-        itemImg:orderItem.itemImg,
-        itemName:orderItem.itemName,
-        itemPropvalues:orderItem.itemPropvalues,
-        itemPrice:orderItem.itemPrice,
-        score:p.score,
-        content:p.content,
-        rateImgList:p.rateImgList ? p.rateImgList.join(',') : undefined
+        itemId: p.itemId,
+        itemImg: orderItem.itemImg,
+        itemName: orderItem.itemName,
+        itemPropvalues: orderItem.itemPropvalues,
+        itemPrice: orderItem.itemPrice,
+        score: p.score,
+        content: p.content,
+        rateImgList: p.rateImgList ? p.rateImgList.join(',') : undefined
       });
+
+      await itemCountCtrl.itemCount(p.itemId, 'rateCount', 1);
     });
-    
 
     let rows = await models.rate.bulkCreate(createData);
 

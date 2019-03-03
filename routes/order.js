@@ -6,6 +6,7 @@ const {
 const tokenMiddleware = require('../middlewares/token');
 const Promise = require('bluebird');
 const axios = require('axios');
+const itemCountCtrl = require('../controllers/item_count');
 
 router.prefix('/orders');
 
@@ -17,6 +18,8 @@ function genOrderNo() {
   }
   return new Date().getTime() + outTradeNo;
 }
+
+
 
 //订单列表
 router.get('/', tokenMiddleware(), async function (ctx, next) {
@@ -50,11 +53,11 @@ router.get('/', tokenMiddleware(), async function (ctx, next) {
 router.get('/:orderId', tokenMiddleware(), async function (ctx, next) {
   try {
     let user = ctx.user;
-    let {orderId} = ctx.params;
+    let { orderId } = ctx.params;
 
     let rows = await models.order.findOne({
-      where:{
-        id:orderId,
+      where: {
+        id: orderId,
         userId: user.id,
       },
       include: [{
@@ -85,10 +88,23 @@ router.post('/build', tokenMiddleware(), async function (ctx, next) {
     let address;
     if (addressId) {
       address = await models.user_addr.findById(addressId);
-    } else {
+    }
+
+    //没有选地址，使用默认地址
+    if (!address) {
       address = await models.user_addr.findOne({
         where: {
+          userId: user.id,
           isDefault: true
+        }
+      });
+    }
+
+    //没有默认地址
+    if (!address) {
+      address = await models.user_addr.findOne({
+        where: {
+          userId: user.id
         }
       });
     }
@@ -275,18 +291,18 @@ router.post('/create', tokenMiddleware(), async function (ctx, next) {
         discountFee: deductPrice,
         userCouponId: couponId
       }, {
-        transaction: t
-      });
+          transaction: t
+        });
 
       //购物车清除
-      let  shopcartIds = itemParams.map(item=>item.shopcartId).filter(item=>!!item);
-      if(shopcartIds.length > 0){
-        let num = await models.shopcart.destroy( {
+      let shopcartIds = itemParams.map(item => item.shopcartId).filter(item => !!item);
+      if (shopcartIds.length > 0) {
+        let num = await models.shopcart.destroy({
           where: {
             id: {
-              $in:shopcartIds
+              $in: shopcartIds
             },
-            userId:user.id
+            userId: user.id
           },
           transaction: t
         });
@@ -298,12 +314,12 @@ router.post('/create', tokenMiddleware(), async function (ctx, next) {
         let [num] = await models.user_coupon.update({
           used: true
         }, {
-          where: {
-            id: couponId,
-            used: false
-          },
-          transaction: t
-        });
+            where: {
+              id: couponId,
+              used: false
+            },
+            transaction: t
+          });
 
         if (num === 0) throw new Error('使用优惠券出错');
       }
@@ -350,8 +366,8 @@ router.post('/:orderId/pay', tokenMiddleware(), async function (ctx, next) {
         let res = await axios.post(`http://localhost:3001/orders/${orderId}/payCallback`, {
           result: true
         }, {
-          headers: ctx.headers
-        });
+            headers: ctx.headers
+          });
 
       } catch (err) {
         console.log(err);
@@ -376,13 +392,13 @@ router.post('/:orderId/payCallback', tokenMiddleware(), async function (ctx, nex
 
     let [num] = await models.order.update({
       status: '2',
-      payTime:Date.now()
+      payTime: Date.now()
     }, {
-      where: {
-        id: orderId,
-        userId: user.id
-      }
-    });
+        where: {
+          id: orderId,
+          userId: user.id
+        }
+      });
 
     if (num === 0) throw new Error('该订单不存在');
 
@@ -444,12 +460,12 @@ router.post('/:orderId/deliver', async function (ctx, next) {
 
     let [num] = await models.order.update({
       status: '3',
-      deliverTime:Date.now()
-    },{
-      where: {
-        id: orderId
-      }
-    });
+      deliverTime: Date.now()
+    }, {
+        where: {
+          id: orderId
+        }
+      });
 
     if (num === 0) throw new Error('该订单不存在');
 
@@ -467,17 +483,26 @@ router.post('/:orderId/confirmReceive', tokenMiddleware(), async function (ctx, 
       orderId
     } = ctx.params;
 
-    let [num] = await models.order.update({
-      status: '4',
-      endTime:Date.now()
-    },{
+    let order = await models.order.findById(orderId, {
       where: {
-        id: orderId,
-        userId:user.id
-      }
+        userId: user.id
+      },
+      include: [
+        { model: models.order_item }
+      ]
     });
 
-    if (num === 0) throw new Error('该订单不存在');
+    if (!order) throw new Error('该订单不存在');
+
+    await order.update({
+      status: '4',
+      endTime: Date.now()
+    });
+
+    //商品销量+1
+    await Promise.each(order.order_items,async (orderItem)=>{
+      await itemCountCtrl.itemCount(orderItem.itemId, 'saleCount', orderItem.quantity);
+    });
 
     ctx.sendRes(null, 0, '确认收货成功');
   } catch (err) {
@@ -492,18 +517,18 @@ router.post('/:orderId/cancel', tokenMiddleware(), async function (ctx, next) {
     let {
       orderId
     } = ctx.params;
-    let {cancelReason} = ctx.request.body;
+    let { cancelReason } = ctx.request.body;
 
     let [num] = await models.order.update({
       status: '9',
-      endTime:Date.now(),
+      endTime: Date.now(),
       cancelReason
-    },{
-      where: {
-        id: orderId,
-        userId:user.id
-      }
-    });
+    }, {
+        where: {
+          id: orderId,
+          userId: user.id
+        }
+      });
 
     if (num === 0) throw new Error('该订单不存在');
 
@@ -526,7 +551,7 @@ router.delete('/:orderId', tokenMiddleware(), async function (ctx, next) {
     let num = await models.order.destroy({
       where: {
         id: orderId,
-        userId:user.id
+        userId: user.id
       }
     });
 
@@ -551,7 +576,7 @@ router.put('/:orderId/rate', tokenMiddleware(), async function (ctx, next) {
     let num = await models.order.destroy({
       where: {
         id: orderId,
-        userId:user.id
+        userId: user.id
       }
     });
 
