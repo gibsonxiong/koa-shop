@@ -68,8 +68,20 @@ router.put('/userCoupons', tokenMiddleware(), async function (ctx, next) {
     } = ctx.request.body;
 
     //todo 检测已领取数量是否小于总数量
+    let coupon = await models.coupon.findById(couponId);
+
+    if(coupon.sendQuantity >= coupon.quantity) throw new Error('优惠券已领完');
 
     //todo 是否已经领取
+    let userCoupons =  await models.user_coupon.findAll({
+      where:{
+        userId: user.id,
+        couponId
+      }
+    });
+
+    let maxLength = 2;
+    if(userCoupons.length >= maxLength) throw new Error(`每人最多只能领取${maxLength}张`);
 
     let row = await models.user_coupon.create({
       userId: user.id,

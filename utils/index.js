@@ -1,3 +1,6 @@
+const axios = require('axios');
+const fs = require('fs');
+
 exports.getDayStartTime = function (date = new Date()) {
     return new Date(+new Date(date.toLocaleDateString()));
 }
@@ -15,8 +18,11 @@ exports.genOrderNo = function () {
     return new Date().getTime() + outTradeNo;
 }
 
-exports.uniqueArray = function (array){
-    var temp = {}, r = [], len = array.length, val, type;
+exports.uniqueArray = function (array) {
+    var temp = {},
+        r = [],
+        len = array.length,
+        val, type;
     for (var i = 0; i < len; i++) {
         val = array[i];
         type = typeof val;
@@ -29,4 +35,23 @@ exports.uniqueArray = function (array){
         }
     }
     return r;
+}
+
+exports.download = function (input, output) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let res = await axios.get(input,{
+                responseType: "arraybuffer",
+              });
+
+            fs.writeFile(output, res.data,function (err) {
+                if (err) {
+                    reject(err);
+                }
+                resolve();
+            });
+        } catch (err) {
+            reject(err);
+        }
+    });
 }

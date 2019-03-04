@@ -6,6 +6,7 @@ const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const tokenMiddleware = require('../middlewares/token');
 const utils = require('../utils');
+const Promise = require('bluebird')
 
 router.prefix('/items')
 
@@ -29,7 +30,7 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
 
       //保存搜索历史
       if (user) {
-        let [searchHistory,created] = await models.search_history.findCreateFind({
+        let [searchHistory, created] = await models.search_history.findCreateFind({
           defaults: {
             userId: user.id,
             keywords: searchText,
@@ -39,10 +40,10 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
           }
         });
 
-        if(!created) {
+        if (!created) {
           let keywords = searchHistory.keywords.split(',');
           keywords.unshift(searchText);
-          keywords = utils.uniqueArray(keywords).slice(0,10).join(',');
+          keywords = utils.uniqueArray(keywords).slice(0, 10).join(',');
           let res = searchHistory.update({
             keywords
           });
@@ -61,13 +62,24 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
       offset: ((pageIndex || 1) - 1) * pageSize,
     });
 
-    rows.forEach(row => {
+    await Promise.each(rows, async row => {
       row.dataValues.imgList = row.imgList.split(',');
 
       let prices = row.dataValues.skus.map(item => item.price);
       row.dataValues.minPrice = prices.length === 0 ? 0 : Math.min(...prices);
       row.dataValues.maxPrice = prices.length === 0 ? 0 : Math.max(...prices);
-    })
+
+      //商品统计表
+      let itemCount = await models.item_count.findOne({
+        where: {
+          itemId:row.id
+        }
+      });
+
+      row.dataValues.saleCount = itemCount ? itemCount.saleCount : 0;
+    });
+
+    
     ctx.sendRes(rows);
   } catch (err) {
     ctx.sendRes(null, -1, err.message);
@@ -164,7 +176,7 @@ router.get('/:itemId', tokenMiddleware(false), async function (ctx) {
 
     //商品统计表
     let itemCount = await models.item_count.findOne({
-      where:{
+      where: {
         itemId
       }
     });
@@ -174,8 +186,8 @@ router.get('/:itemId', tokenMiddleware(false), async function (ctx) {
     row.dataValues.minPrice = prices.length === 0 ? 0 : Math.min(...prices);
     row.dataValues.maxPrice = prices.length === 0 ? 0 : Math.max(...prices);
     row.dataValues.postFee = 0;
-    row.dataValues.saleCount = itemCount? itemCount.saleCount : 0;
-    row.dataValues.rateCount = itemCount? itemCount.rateCount : 0;
+    row.dataValues.saleCount = itemCount ? itemCount.saleCount : 0;
+    row.dataValues.rateCount = itemCount ? itemCount.rateCount : 0;
 
     //记录足迹
     if (user) {
@@ -211,5 +223,7 @@ router.get('/:itemId', tokenMiddleware(false), async function (ctx) {
     ctx.sendRes(null, -1, err.message);
   }
 });
+
+
 
 module.exports = router

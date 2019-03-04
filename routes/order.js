@@ -53,7 +53,9 @@ router.get('/', tokenMiddleware(), async function (ctx, next) {
 router.get('/:orderId', tokenMiddleware(), async function (ctx, next) {
   try {
     let user = ctx.user;
-    let { orderId } = ctx.params;
+    let {
+      orderId
+    } = ctx.params;
 
     let rows = await models.order.findOne({
       where: {
@@ -201,13 +203,28 @@ router.post('/create', tokenMiddleware(), async function (ctx, next) {
     let address;
     if (addressId) {
       address = await models.user_addr.findById(addressId);
-    } else {
+    }
+
+    //没有选地址，使用默认地址
+    if (!address) {
       address = await models.user_addr.findOne({
         where: {
+          userId: user.id,
           isDefault: true
         }
       });
     }
+
+    //没有默认地址
+    if (!address) {
+      address = await models.user_addr.findOne({
+        where: {
+          userId: user.id
+        }
+      });
+    }
+
+    if(!address) throw new Error('收货地址不能为空');
 
     //订单商品
     let itemFee = 0;
@@ -291,8 +308,8 @@ router.post('/create', tokenMiddleware(), async function (ctx, next) {
         discountFee: deductPrice,
         userCouponId: couponId
       }, {
-          transaction: t
-        });
+        transaction: t
+      });
 
       //购物车清除
       let shopcartIds = itemParams.map(item => item.shopcartId).filter(item => !!item);
@@ -314,27 +331,43 @@ router.post('/create', tokenMiddleware(), async function (ctx, next) {
         let [num] = await models.user_coupon.update({
           used: true
         }, {
-            where: {
-              id: couponId,
-              used: false
-            },
-            transaction: t
-          });
+          where: {
+            id: couponId,
+            used: false
+          },
+          transaction: t
+        });
 
         if (num === 0) throw new Error('使用优惠券出错');
       }
 
       //子订单插入数据
-      let orderItemData = orderItems.map(orderItem => {
-        return {
+      let orderItemData = [];
+
+      await Promise.each(orderItems, async orderItem => {
+
+        //减库存
+        let sku = await models.sku.findById(orderItem.sku.id, {
+          transaction: t
+        });
+
+        if (sku.quantity == 0 || sku.quantity < orderItem.quantity) throw new Error('库存不足');
+
+        await sku.decrement('quantity', {
+          by: orderItem.quantity,
+          transaction: t
+        });
+
+        orderItemData.push({
           orderId: orderRow.id,
           itemImg: orderItem.item.getDataValue('imgList')[0],
           itemId: orderItem.item.id,
+          skuId:orderItem.sku.id,
           itemName: orderItem.item.name,
           itemPropvalues: orderItem.sku.propvalueTextList,
           itemPrice: orderItem.sku.price,
           quantity: orderItem.quantity
-        }
+        });
       });
 
       let orderItemRows = await models.order_item.bulkCreate(orderItemData, {
@@ -366,8 +399,8 @@ router.post('/:orderId/pay', tokenMiddleware(), async function (ctx, next) {
         let res = await axios.post(`http://localhost:3001/orders/${orderId}/payCallback`, {
           result: true
         }, {
-            headers: ctx.headers
-          });
+          headers: ctx.headers
+        });
 
       } catch (err) {
         console.log(err);
@@ -390,17 +423,22 @@ router.post('/:orderId/payCallback', tokenMiddleware(), async function (ctx, nex
     } = ctx.params;
 
 
-    let [num] = await models.order.update({
+    let order = await models.order.findById(orderId, {
+      where: {
+        userId: user.id
+      },
+      include: [{
+        model: models.order_item
+      }]
+    });
+
+    if (!order) throw new Error('该订单不存在');
+    if (order.status != '1') throw new Error('订单状态异常');
+
+    await order.update({
       status: '2',
       payTime: Date.now()
-    }, {
-        where: {
-          id: orderId,
-          userId: user.id
-        }
-      });
-
-    if (num === 0) throw new Error('该订单不存在');
+    });
 
     ctx.sendRes(null, 0, '');
   } catch (err) {
@@ -457,17 +495,22 @@ router.post('/:orderId/deliver', async function (ctx, next) {
       orderId
     } = ctx.params;
 
+    let order = await models.order.findById(orderId, {
+      where: {
+        userId: user.id
+      },
+      include: [{
+        model: models.order_item
+      }]
+    });
 
-    let [num] = await models.order.update({
+    if (!order) throw new Error('该订单不存在');
+    if (order.status != '2') throw new Error('订单状态异常');
+
+    await order.update({
       status: '3',
       deliverTime: Date.now()
-    }, {
-        where: {
-          id: orderId
-        }
-      });
-
-    if (num === 0) throw new Error('该订单不存在');
+    });
 
     ctx.sendRes(null, 0, '订单发货成功');
   } catch (err) {
@@ -487,12 +530,13 @@ router.post('/:orderId/confirmReceive', tokenMiddleware(), async function (ctx, 
       where: {
         userId: user.id
       },
-      include: [
-        { model: models.order_item }
-      ]
+      include: [{
+        model: models.order_item
+      }]
     });
 
     if (!order) throw new Error('该订单不存在');
+    if (order.staus !== '3') throw new Error('订单状态异常');
 
     await order.update({
       status: '4',
@@ -500,7 +544,7 @@ router.post('/:orderId/confirmReceive', tokenMiddleware(), async function (ctx, 
     });
 
     //商品销量+1
-    await Promise.each(order.order_items,async (orderItem)=>{
+    await Promise.each(order.order_items, async (orderItem) => {
       await itemCountCtrl.itemCount(orderItem.itemId, 'saleCount', orderItem.quantity);
     });
 
@@ -517,20 +561,46 @@ router.post('/:orderId/cancel', tokenMiddleware(), async function (ctx, next) {
     let {
       orderId
     } = ctx.params;
-    let { cancelReason } = ctx.request.body;
-
-    let [num] = await models.order.update({
-      status: '9',
-      endTime: Date.now(),
+    let {
       cancelReason
-    }, {
-        where: {
-          id: orderId,
-          userId: user.id
-        }
-      });
+    } = ctx.request.body;
 
-    if (num === 0) throw new Error('该订单不存在');
+    let order = await models.order.findById(orderId, {
+      where: {
+        userId: user.id
+      },
+      include: [{
+        model: models.order_item
+      }]
+    });
+
+    if (!order) throw new Error('该订单不存在');
+    if (order.status !== '1') throw new Error('订单状态异常');
+
+    await db.transaction(async (t) => {
+
+      await order.update({
+        status: '9',
+        endTime: Date.now(),
+        cancelReason
+      },{transaction: t});
+  
+      await Promise.each(order.order_items, async orderItem=>{
+  
+        //恢复库存
+        let sku = await models.sku.findById(orderItem.skuId, {
+          transaction: t
+        });
+
+        if(!sku) return;
+    
+        await sku.increment('quantity', {
+          by: orderItem.quantity,
+          transaction: t
+        });
+      });
+    });
+
 
     ctx.sendRes(null, 0, '取消订单成功');
   } catch (err) {

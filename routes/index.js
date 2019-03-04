@@ -4,7 +4,11 @@ const {
 } = require('../db');
 const axios = require('axios');
 const tokenMiddleware = require('../middlewares/token');
-const {upload, getUploadPath} = require('../utils/upload')
+const {
+  upload,
+  getUploadPath
+} = require('../utils/upload');
+const sharp = require('sharp');
 
 
 router.get('/', async (ctx, next) => {
@@ -250,13 +254,13 @@ router.get('/deliver', async function (ctx, next) {
 });
 
 //上传
-router.put('/upload' , upload.array('img'), async function (ctx, next) {
+router.put('/upload', upload.array('img'), async function (ctx, next) {
   try {
     let files = ctx.req.files;
-    files.forEach((file)=>{
+    files.forEach((file) => {
       file.src = getUploadPath(file.filename);
     });
-    
+
     ctx.sendRes(files, 0, '上传成功');
 
   } catch (err) {
@@ -265,12 +269,12 @@ router.put('/upload' , upload.array('img'), async function (ctx, next) {
 });
 
 //搜索联想
-router.get('/suggest' , async function (ctx, next) {
+router.get('/suggest', async function (ctx, next) {
   try {
     let q = ctx.query.q;
 
     q = encodeURIComponent(q);
-    
+
     let res = (await axios.get(`https://suggest.taobao.com/sug?code=utf-8&q=${q}`)).data;
 
     ctx.sendRes(res.result);
@@ -280,11 +284,11 @@ router.get('/suggest' , async function (ctx, next) {
 });
 
 //用户搜索历史
-router.get('/searchs' , tokenMiddleware(false), async function (ctx, next) {
+router.get('/searchs', tokenMiddleware(false), async function (ctx, next) {
   try {
     let user = ctx.user;
 
-    if(!user) return ctx.sendRes([]);
+    if (!user) return ctx.sendRes([]);
 
     let row = await models.search_history.findOne({
       where: {
@@ -301,7 +305,7 @@ router.get('/searchs' , tokenMiddleware(false), async function (ctx, next) {
 });
 
 //用户搜索历史
-router.delete('/searchs' , tokenMiddleware(), async function (ctx, next) {
+router.delete('/searchs', tokenMiddleware(), async function (ctx, next) {
   try {
     let user = ctx.user;
 
@@ -311,7 +315,33 @@ router.delete('/searchs' , tokenMiddleware(), async function (ctx, next) {
       }
     });
 
-    ctx.sendRes(null,0,'删除搜索历史成功');
+    ctx.sendRes(null, 0, '删除搜索历史成功');
+  } catch (err) {
+    ctx.sendRes(null, -1, err.message);
+  }
+});
+
+//图片处理
+router.get('/img', async function (ctx, next) {
+  try {
+    let {quality = 100, width, height} = ctx.query;
+    let resizeOptions = {};
+    if(width){
+      resizeOptions.width = Number(width);
+    }
+    if(height){
+      resizeOptions.height = Number(height);
+    }
+    let data = await sharp('public/upload/temp/1551667088744-Lighthouse.jpg')
+      .resize(resizeOptions)
+      .jpeg({
+        quality: Number(quality)
+      })
+      .toBuffer()
+      
+      ctx.type = 'jpg';
+      ctx.body = data;
+
   } catch (err) {
     ctx.sendRes(null, -1, err.message);
   }

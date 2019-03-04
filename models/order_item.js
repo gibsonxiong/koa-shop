@@ -16,6 +16,10 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER(11),
       allowNull: false
     },
+    skuId:{
+      type: DataTypes.INTEGER(11),
+      allowNull: false
+    },
     itemImg: {
       type: DataTypes.STRING(255),
       allowNull: false
