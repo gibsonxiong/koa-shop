@@ -496,9 +496,6 @@ router.post('/:orderId/deliver', async function (ctx, next) {
     } = ctx.params;
 
     let order = await models.order.findById(orderId, {
-      where: {
-        userId: user.id
-      },
       include: [{
         model: models.order_item
       }]
@@ -536,7 +533,7 @@ router.post('/:orderId/confirmReceive', tokenMiddleware(), async function (ctx, 
     });
 
     if (!order) throw new Error('该订单不存在');
-    if (order.staus !== '3') throw new Error('订单状态异常');
+    if (order.status !== '3') throw new Error('订单状态异常');
 
     await order.update({
       status: '4',

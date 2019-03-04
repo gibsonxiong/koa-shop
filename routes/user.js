@@ -60,7 +60,43 @@ router.post('/info', tokenMiddleware(), async function (ctx, next) {
   }
 })
 
+//用户订单数
+router.get('/orderCount', tokenMiddleware(), async function (ctx, next) {
+  try {
+    let user = ctx.user;
+    let rows = await models.order.findAll({
+      where:{
+        userId:user.id
+      }
+    });
 
+    let waitPayCount =0;
+    let waitDeliverCount = 0;
+    let waitReceiveCount = 0;
+    let waitRateCount = 0;
+    
+    rows.forEach(row=>{
+      if(row.status == '1'){
+        waitPayCount++;
+      }else if(row.status == '2'){
+        waitDeliverCount++;
+      }else if(row.status == '3'){
+        waitReceiveCount++;
+      }else if(row.status == '4'){
+        waitRateCount++;
+      }
+    });
+
+    ctx.sendRes({
+      waitPayCount,
+      waitDeliverCount,
+      waitReceiveCount,
+      waitRateCount
+    });
+  } catch (err) {
+    ctx.sendRes(null, -1, err.message);
+  }
+})
 
 
 module.exports = router

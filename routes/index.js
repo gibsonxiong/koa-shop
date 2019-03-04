@@ -8,7 +8,7 @@ const {
   upload,
   getUploadPath
 } = require('../utils/upload');
-const sharp = require('sharp');
+// const sharp = require('sharp');
 
 
 router.get('/', async (ctx, next) => {
@@ -321,30 +321,30 @@ router.delete('/searchs', tokenMiddleware(), async function (ctx, next) {
   }
 });
 
-//图片处理
-router.get('/img', async function (ctx, next) {
-  try {
-    let {quality = 100, width, height} = ctx.query;
-    let resizeOptions = {};
-    if(width){
-      resizeOptions.width = Number(width);
-    }
-    if(height){
-      resizeOptions.height = Number(height);
-    }
-    let data = await sharp('public/upload/temp/1551667088744-Lighthouse.jpg')
-      .resize(resizeOptions)
-      .jpeg({
-        quality: Number(quality)
-      })
-      .toBuffer()
+// //图片处理
+// router.get('/img', async function (ctx, next) {
+//   try {
+//     let {quality = 100, width, height} = ctx.query;
+//     let resizeOptions = {};
+//     if(width){
+//       resizeOptions.width = Number(width);
+//     }
+//     if(height){
+//       resizeOptions.height = Number(height);
+//     }
+//     let data = await sharp('public/upload/temp/1551667088744-Lighthouse.jpg')
+//       .resize(resizeOptions)
+//       .jpeg({
+//         quality: Number(quality)
+//       })
+//       .toBuffer()
       
-      ctx.type = 'jpg';
-      ctx.body = data;
+//       ctx.type = 'jpg';
+//       ctx.body = data;
 
-  } catch (err) {
-    ctx.sendRes(null, -1, err.message);
-  }
-});
+//   } catch (err) {
+//     ctx.sendRes(null, -1, err.message);
+//   }
+// });
 
 module.exports = router
