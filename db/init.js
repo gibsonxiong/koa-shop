@@ -2148,7 +2148,7 @@ async function init() {
         id: 1,
         phone: '13686004518',
         password: '123456',
-        avatar: 'https://avatars0.githubusercontent.com/u/15243456?s=460&v=4',
+        // avatar: 'https://avatars0.githubusercontent.com/u/15243456?s=460&v=4',
         nickname: 'gibsonxiong'
     }]);
 
