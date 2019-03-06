@@ -9,6 +9,11 @@ exports.getDayEndTime = function (date = new Date()) {
     return new Date(new Date(date.toLocaleDateString()).getTime() + 24 * 60 * 60 * 1000 - 1);
 }
 
+exports.randomNum = function (min, max) {
+    return parseInt(Math.random() * (max - min + 1) + min, 10);
+
+}
+
 exports.genOrderNo = function () {
     var outTradeNo = ""; //订单号
     for (var i = 0; i < 6; i++) //6位随机数，用以加在时间戳后面。
@@ -40,11 +45,11 @@ exports.uniqueArray = function (array) {
 exports.download = function (input, output) {
     return new Promise(async (resolve, reject) => {
         try {
-            let res = await axios.get(input,{
+            let res = await axios.get(input, {
                 responseType: "arraybuffer",
-              });
+            });
 
-            fs.writeFile(output, res.data,function (err) {
+            fs.writeFile(output, res.data, function (err) {
                 if (err) {
                     reject(err);
                 }

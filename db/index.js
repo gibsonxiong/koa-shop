@@ -92,6 +92,10 @@ models.item.hasMany(models.sku, {
     foreignKey: 'itemId'
 });
 
+models.item.hasOne(models.item_count, {
+    foreignKey: 'itemId'
+});
+
 models.footprint.belongsTo(models.item, {
     foreignKey: 'itemId'
 });

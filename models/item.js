@@ -22,7 +22,7 @@ module.exports = function (sequelize, DataTypes) {
     },
     imgList: {
       type: DataTypes.STRING(2000),
-      allowNull: false
+      allowNull: false,
     },
     propvalueList: {
       type: DataTypes.STRING(5000),

@@ -9,7 +9,7 @@ const {
   getUploadPath
 } = require('../utils/upload');
 // const sharp = require('sharp');
-
+const validate = require('../validate');
 
 router.get('/', async (ctx, next) => {
   await ctx.render('index', {
@@ -145,6 +145,21 @@ router.put('/address', tokenMiddleware(), async function (ctx, next) {
   try {
     let user = ctx.user;
     let body = ctx.request.body;
+
+    if(validate.isEmpty(body.name)){
+      throw new Error('收货人不能为空');
+    }
+
+    // body.area: ""
+    // areaId: ""
+    // city: ""
+    // cityId: ""
+    // detailAddr: ""
+    // isDefault: false
+    // name: ""
+    // phone: ""
+    // province: ""
+    // provinceId: ""
 
     //先移除其他默认
     await models.user_addr.update({
