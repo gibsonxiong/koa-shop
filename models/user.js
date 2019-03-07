@@ -21,7 +21,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true,
     },
     nickname:{
-      type: DataTypes.STRING(20),
+      type: DataTypes.STRING(50),
       allowNull: true,
     },
     gender:{

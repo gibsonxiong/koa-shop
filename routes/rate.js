@@ -54,14 +54,13 @@ router.get('/items/:itemId', tokenMiddleware(false), async function (ctx, next) 
 });
 
 //评价详情
-router.get('/:rateId', tokenMiddleware(), async function (ctx, next) {
+router.get('/:rateId', tokenMiddleware(false), async function (ctx, next) {
   try {
     let user = ctx.user;
     let { rateId } = ctx.params;
     let row = await models.rate.findOne({
       where: {
-        id: rateId,
-        userId: user.id
+        id: rateId
       },
       include: [
         { model: models.user }

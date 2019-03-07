@@ -11,7 +11,8 @@ async function init() {
         force: true
     });
 
-    let data = [{
+    let categorys = [
+        {
             "id": 1,
             "name": "女装"
         },
@@ -2143,15 +2144,23 @@ async function init() {
 
     ];
 
-    await models.category.bulkCreate(data);
+    await models.category.bulkCreate(categorys);
 
-    await models.user.bulkCreate([{
-        id: 1,
-        phone: '13686004518',
-        password: '123456',
-        // avatar: 'https://avatars0.githubusercontent.com/u/15243456?s=460&v=4',
-        nickname: 'gibsonxiong'
-    }]);
+    let users = [{
+            id: 1,
+            phone: '13686004518',
+            password: '123456',
+            nickname: 'gibsonxiong'
+        },
+        {
+            id: 2,
+            phone: '13686004510',
+            password: '123456',
+            nickname: 'xiaolx'
+        }
+    ]
+
+    await models.user.bulkCreate(users);
 
     await models.propname.bulkCreate([{
         id: 1,
@@ -2607,12 +2616,12 @@ async function init() {
             quantity: 100,
             price: 50
         },
-        
+
 
     ];
 
-    items.forEach(item=>{
-        if(item.id == 1) return ;
+    items.forEach(item => {
+        if (item.id == 1) return;
 
         skus.push({
             itemId: item.id,
@@ -2620,15 +2629,13 @@ async function init() {
             propvalueTextList: '红色;S',
             quantity: utils.randomNum(0, 1) == 0 ? utils.randomNum(0, 5) : utils.randomNum(0, 1000),
             price: utils.randomNum(5, 200)
-        },
-        {
+        }, {
             itemId: item.id,
             propvalueList: '1:2|2:5',
             propvalueTextList: '红色;M',
             quantity: utils.randomNum(0, 1) == 0 ? utils.randomNum(0, 5) : utils.randomNum(0, 1000),
             price: utils.randomNum(5, 200)
-        },
-        {
+        }, {
             itemId: item.id,
             propvalueList: '1:2|2:6',
             propvalueTextList: '红色;L',
@@ -2641,19 +2648,28 @@ async function init() {
 
 
     await models.coupon.bulkCreate([{
-            name: '满50减20',
-            desc: '满50减20,全场可用',
+            name: '满50减10',
+            desc: '满50减10,全场可用',
             limitPrice: 50,
-            deductPrice: 20,
-            quantity: 20,
+            deductPrice: 10,
+            quantity: 10,
             startTime: new Date('2019-2-19'),
             endTime: new Date('2019-3-19')
         },
         {
-            name: '无门槛减20',
-            desc: '无门槛减20,全场可用',
+            name: '满100减30',
+            desc: '满100减30,全场可用',
+            limitPrice: 100,
+            deductPrice: 30,
+            quantity: 5,
+            startTime: new Date('2019-2-19'),
+            endTime: new Date('2019-3-19')
+        },
+        {
+            name: '无门槛减5',
+            desc: '无门槛减5,全场可用',
             limitPrice: 0,
-            deductPrice: 20,
+            deductPrice: 5,
             quantity: 20,
             startTime: new Date('2019-2-19'),
             endTime: new Date('2019-3-19')
@@ -2661,74 +2677,23 @@ async function init() {
     ]);
 
     await models.user_coupon.bulkCreate([{
-        "userId": 1,
-        "couponId": 1,
-        "used": false
-    }, {
-        "userId": 1,
-        "couponId": 2,
-        "used": false
-    }]);
-
-    await models.region.bulkCreate([{
-            id: 1,
-            name: '北京市',
+            "userId": 1,
+            "couponId": 1,
+            "used": false
+        }, {
+            "userId": 1,
+            "couponId": 2,
+            "used": false
         },
         {
-            id: 2,
-            name: '广东省',
-        },
-        {
-            id: 3,
-            name: '北京市',
-            parentId: 1
-        },
-        {
-            id: 4,
-            name: '深圳市',
-            parentId: 2
-        },
-        {
-            id: 5,
-            name: '东莞市',
-            parentId: 2
-        },
-        {
-            id: 6,
-            name: '宝安区',
-            parentId: 4
-        },
-        {
-            id: 7,
-            name: '福田区',
-            parentId: 4
-        },
-        {
-            id: 8,
-            name: '罗湖区',
-            parentId: 4
-        },
-        {
-            id: 9,
-            name: '莞城区',
-            parentId: 5
-        },
-        {
-            id: 10,
-            name: '东城区',
-            parentId: 5
-        },
-        {
-            id: 11,
-            name: '东城区',
-            parentId: 3
-        },
-        {
-            id: 12,
-            name: '西城区',
-            parentId: 3
+            "userId": 1,
+            "couponId": 3,
+            "used": false
         }
     ]);
+
+    const regions = require('./data/region');
+    await models.region.bulkCreate(regions);
 
     await models.user_addr.bulkCreate([{
         "userId": 1,

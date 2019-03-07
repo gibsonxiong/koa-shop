@@ -11,9 +11,13 @@ const {
 // const sharp = require('sharp');
 const validate = require('../validate');
 
+function genNickname() {
+  return 'v_' + (+new Date());
+}
+
 router.get('/', async (ctx, next) => {
   await ctx.render('index', {
-    title: 'Hello Koa 2!'
+    title: '欢迎访问VueShop API'
   })
 });
 
@@ -26,18 +30,52 @@ router.post('/register', async function (ctx, next) {
       password
     } = ctx.request.body;
 
-    if (!phone) throw new Error('手机号不能为空');
-    if (!smsCode) throw new Error('验证码不能为空');
-    if (!password) throw new Error('密码不能为空');
-
-    let result = await models.user.insertOrUpdate({
+    let [invalid, msg] = new validate.Validator({
       phone,
+      smsCode,
       password
+    }, {
+      'phone': [{
+          name: 'required',
+          msg: '手机号不能为空'
+        },
+        {
+          name: 'isMobile',
+          msg: '手机号不正确'
+        }
+      ],
+      'smsCode': [{
+        name: 'required',
+        msg: '验证码不能为空'
+      }],
+      'password': [{
+        name: 'required',
+        msg: '密码不能为空'
+      }, {
+        name: 'isPassword',
+        msg: '密码格式不正确'
+      }]
+    }).validate();
+
+    if (invalid) throw new Error(msg);
+
+    let user = await models.user.findOne({
+      where: {
+        phone
+      }
+    });
+
+    if (user) throw new Error('该手机号已注册');
+
+    let result = await models.user.create({
+      phone,
+      password,
+      nickname: genNickname()
     });
 
     if (!result) throw new Error('注册失败');
 
-    ctx.sendRes(null, 0, '注册成功');
+    ctx.sendRes(null, 0, '恭喜！注册成功');
   } catch (err) {
     ctx.sendRes(null, -1, err.message);
   }
@@ -50,7 +88,21 @@ router.post('/getSmsCode', async function (ctx, next) {
       phone
     } = ctx.request.body;
 
-    if (!phone) throw new Error('手机号不能为空');
+    let [invalid, msg] = new validate.Validator({
+      phone
+    }, {
+      'phone': [{
+          name: 'required',
+          msg: '手机号不能为空'
+        },
+        {
+          name: 'isMobile',
+          msg: '手机号不正确'
+        }
+      ]
+    }).validate();
+
+    if (invalid) throw new Error(msg);
 
     ctx.sendRes(null, 0, '发送验证码成功');
   } catch (err) {
@@ -58,7 +110,7 @@ router.post('/getSmsCode', async function (ctx, next) {
   }
 });
 
-//发送验证码
+//登录
 router.post('/login', async function (ctx, next) {
   try {
     let {
@@ -66,8 +118,21 @@ router.post('/login', async function (ctx, next) {
       password
     } = ctx.request.body;
 
-    if (!phone) throw new Error('手机号不能为空');
-    if (!password) throw new Error('密码不能为空');
+    let [invalid, msg] = new validate.Validator({
+      phone,
+      password
+    }, {
+      'phone': [{
+        name: 'required',
+        msg: '手机号不能为空'
+      }],
+      'password': [{
+        name: 'required',
+        msg: '密码不能为空'
+      }],
+    }).validate();
+
+    if (invalid) throw new Error(msg);
 
     let row = await models.user.findOne({
       where: {
@@ -82,6 +147,62 @@ router.post('/login', async function (ctx, next) {
       token: row.id
     }, 0, '登录成功')
 
+  } catch (err) {
+    ctx.sendRes(null, -1, err.message);
+  }
+});
+
+//重置密码
+router.post('/resetPassword', async function (ctx, next) {
+  try {
+    let {
+      phone,
+      smsCode,
+      password
+    } = ctx.request.body;
+
+    let [invalid, msg] = new validate.Validator({
+      phone,
+      smsCode,
+      password
+    }, {
+      'phone': [{
+          name: 'required',
+          msg: '手机号不能为空'
+        },
+        {
+          name: 'isMobile',
+          msg: '手机号不正确'
+        }
+      ],
+      'smsCode': [{
+        name: 'required',
+        msg: '验证码不能为空'
+      }],
+      'password': [{
+        name: 'required',
+        msg: '密码不能为空'
+      }, {
+        name: 'isPassword',
+        msg: '密码格式不正确'
+      }]
+    }).validate();
+
+    if (invalid) throw new Error(msg);
+
+    let user = await models.user.findOne({
+      where: {
+        phone
+      }
+    });
+
+    if (!user) throw new Error('该用户不存在');
+
+    await user.update({
+      password
+    });
+
+    ctx.sendRes(null, 0, '重置密码成功');
   } catch (err) {
     ctx.sendRes(null, -1, err.message);
   }
@@ -140,26 +261,47 @@ router.get('/address/:addressId', tokenMiddleware(), async function (ctx, next) 
   }
 });
 
+let addressValidateConfig = {
+  'name': [{
+      name: 'required',
+      msg: '收货人不能为空'
+    }
+  ],
+  'phone': [{
+    name: 'required',
+    msg: '联系电话不能为空'
+  },{
+    name: 'isMobile',
+    msg: '联系电话不正确'
+  }],
+  'provinceId': [{
+    name: 'required',
+    msg: '所在地区不能为空'
+  }],
+  'cityId': [{
+    name: 'required',
+    msg: '所在地区不能为空'
+  }],
+  'areaId': [{
+    name: 'required',
+    msg: '所在地区不能为空'
+  }],
+  'detailAddr': [{
+    name: 'required',
+    msg: '详细地址不能为空'
+  }]
+};
+
 //新增地址
 router.put('/address', tokenMiddleware(), async function (ctx, next) {
   try {
     let user = ctx.user;
     let body = ctx.request.body;
 
-    if(validate.isEmpty(body.name)){
-      throw new Error('收货人不能为空');
-    }
+ 
+    let [invalid, msg] = new validate.Validator(body, addressValidateConfig).validate();
 
-    // body.area: ""
-    // areaId: ""
-    // city: ""
-    // cityId: ""
-    // detailAddr: ""
-    // isDefault: false
-    // name: ""
-    // phone: ""
-    // province: ""
-    // provinceId: ""
+    if(invalid) throw new Error(msg);
 
     //先移除其他默认
     await models.user_addr.update({
@@ -190,6 +332,12 @@ router.post('/address/:addressId', tokenMiddleware(), async function (ctx, next)
       addressId
     } = ctx.params;
     let body = ctx.request.body;
+
+    if(validate.isEmpty(addressId) ) throw new Error('找不到该地址');
+
+    let [invalid, msg] = new validate.Validator(body, addressValidateConfig).validate();
+
+    if(invalid) throw new Error(msg);
 
     //先移除其他默认
     await models.user_addr.update({
@@ -353,7 +501,7 @@ router.delete('/searchs', tokenMiddleware(), async function (ctx, next) {
 //         quality: Number(quality)
 //       })
 //       .toBuffer()
-      
+
 //       ctx.type = 'jpg';
 //       ctx.body = data;
 
