@@ -80,6 +80,7 @@ sequelize.import('../models/user_addr');
 sequelize.import('../models/footprint');
 sequelize.import('../models/test');
 sequelize.import('../models/rate');
+sequelize.import('../models/rate_like');
 sequelize.import('../models/refund');
 sequelize.import('../models/search_history');
 
@@ -121,6 +122,10 @@ models.user_coupon.belongsTo(models.coupon, {
 
 models.rate.belongsTo(models.user, {
     foreignKey: 'userId'
+});
+
+models.rate.hasMany(models.rate_like, {
+    foreignKey: 'rateId'
 });
 
 models.refund.belongsTo(models.order_item, {

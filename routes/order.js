@@ -40,7 +40,10 @@ router.get('/', tokenMiddleware(), async function (ctx, next) {
       where,
       include: [{
         model: models.order_item
-      }]
+      }],
+      order:[
+        ['createTime','desc']
+      ]
     });
 
     ctx.sendRes(rows);
@@ -89,7 +92,11 @@ router.post('/build', tokenMiddleware(), async function (ctx, next) {
     //地址
     let address;
     if (addressId) {
-      address = await models.user_addr.findById(addressId);
+      address = await models.user_addr.findById(addressId, {
+        where: {
+          userId: user.id
+        }
+      });
     }
 
     //没有选地址，使用默认地址
@@ -102,7 +109,7 @@ router.post('/build', tokenMiddleware(), async function (ctx, next) {
       });
     }
 
-    //没有默认地址
+    //没有默认地址,选择第一个地址
     if (!address) {
       address = await models.user_addr.findOne({
         where: {
@@ -162,6 +169,9 @@ router.post('/build', tokenMiddleware(), async function (ctx, next) {
     let coupon;
     if (couponId) {
       coupon = couponList.find(item => item.id == couponId);
+
+      if(!coupon) throw new Error('该优惠券不存在或者不适用');
+
       deductPrice = coupon.coupon.deductPrice;
     }
 
@@ -202,7 +212,11 @@ router.post('/create', tokenMiddleware(), async function (ctx, next) {
     //地址
     let address;
     if (addressId) {
-      address = await models.user_addr.findById(addressId);
+      address = await models.user_addr.findById(addressId, {
+        where: {
+          userId: user.id
+        }
+      });
     }
 
     //没有选地址，使用默认地址
@@ -215,7 +229,7 @@ router.post('/create', tokenMiddleware(), async function (ctx, next) {
       });
     }
 
-    //没有默认地址
+    //没有默认地址,选择第一个地址
     if (!address) {
       address = await models.user_addr.findOne({
         where: {
@@ -224,7 +238,7 @@ router.post('/create', tokenMiddleware(), async function (ctx, next) {
       });
     }
 
-    if(!address) throw new Error('收货地址不能为空');
+    if (!address) throw new Error('收货地址不能为空');
 
     //订单商品
     let itemFee = 0;
@@ -277,9 +291,9 @@ router.post('/create', tokenMiddleware(), async function (ctx, next) {
     let coupon;
     if (couponId != '' && couponId != null) {
       coupon = couponList.find(item => item.id == couponId);
+      if(!coupon) throw new Error('该优惠券不存在或者不适用');
+      
       deductPrice = coupon.coupon.deductPrice;
-
-      if (!coupon) throw new Error('该优惠券不适用');
     } else {
       couponId = undefined; //处理空字符串不能插入问题
     }
@@ -362,7 +376,7 @@ router.post('/create', tokenMiddleware(), async function (ctx, next) {
           orderId: orderRow.id,
           itemImg: orderItem.item.getDataValue('imgList')[0],
           itemId: orderItem.item.id,
-          skuId:orderItem.sku.id,
+          skuId: orderItem.sku.id,
           itemName: orderItem.item.name,
           itemPropvalues: orderItem.sku.propvalueTextList,
           itemPrice: orderItem.sku.price,
@@ -580,17 +594,19 @@ router.post('/:orderId/cancel', tokenMiddleware(), async function (ctx, next) {
         status: '9',
         endTime: Date.now(),
         cancelReason
-      },{transaction: t});
-  
-      await Promise.each(order.order_items, async orderItem=>{
-  
+      }, {
+        transaction: t
+      });
+
+      await Promise.each(order.order_items, async orderItem => {
+
         //恢复库存
         let sku = await models.sku.findById(orderItem.skuId, {
           transaction: t
         });
 
-        if(!sku) return;
-    
+        if (!sku) return;
+
         await sku.increment('quantity', {
           by: orderItem.quantity,
           transaction: t

@@ -1,7 +1,8 @@
 const router = require('koa-router')();
+const db = require('../db');
 const {
   models
-} = require('../db');
+} = db;
 const tokenMiddleware = require('../middlewares/token');
 const Promise = require('bluebird');
 const itemCountCtrl = require('../controllers/item_count');
@@ -18,7 +19,11 @@ router.get('/', tokenMiddleware(), async function (ctx, next) {
         userId: user.id
       },
       include: [
-        { model: models.user }
+        {
+          model: models.user
+        }, {
+          model: models.rate_like
+        }
       ]
     });
 
@@ -32,14 +37,24 @@ router.get('/', tokenMiddleware(), async function (ctx, next) {
 router.get('/items/:itemId', tokenMiddleware(false), async function (ctx, next) {
   try {
     let user = ctx.user;
-    let { itemId } = ctx.params;
+    let {
+      itemId
+    } = ctx.params;
 
     let rows = await models.rate.findAll({
       where: {
         itemId
       },
+      attributes:{
+        include:[[db.fn('COUNT',db.col('rate_likes.id')),'likeCount']]
+      },
       include: [
-        { model: models.user }
+        {
+          model: models.user
+        },
+        {
+          model: models.rate_like
+        }
       ]
     });
 
@@ -57,14 +72,16 @@ router.get('/items/:itemId', tokenMiddleware(false), async function (ctx, next) 
 router.get('/:rateId', tokenMiddleware(false), async function (ctx, next) {
   try {
     let user = ctx.user;
-    let { rateId } = ctx.params;
+    let {
+      rateId
+    } = ctx.params;
     let row = await models.rate.findOne({
       where: {
         id: rateId
       },
-      include: [
-        { model: models.user }
-      ]
+      include: [{
+        model: models.user
+      }]
     });
 
     if (!row) throw new Error('该评价不存在');
@@ -94,8 +111,7 @@ router.put('/', tokenMiddleware(), async function (ctx, next) {
         }]
       }
     */
-    let params
-      = ctx.request.body;
+    let params = ctx.request.body;
     let createData = [];
 
     //todo:事务
@@ -106,7 +122,7 @@ router.put('/', tokenMiddleware(), async function (ctx, next) {
     });
 
     if (!order) throw new Error('该订单不存在');
-    if(order.status != '4') throw new Error('该订单状态异常');
+    if (order.status != '4') throw new Error('该订单状态异常');
 
     await order.update({
       status: '5'
@@ -135,6 +151,49 @@ router.put('/', tokenMiddleware(), async function (ctx, next) {
     let rows = await models.rate.bulkCreate(createData);
 
     ctx.sendRes(rows, 0, '评价成功');
+  } catch (err) {
+    ctx.sendRes(null, -1, err.message);
+  }
+});
+
+//点赞评价
+router.post('/:rateId/like', tokenMiddleware(), async function (ctx, next) {
+  try {
+    let user = ctx.user;
+
+    let {
+      isLike = true
+    } = ctx.request.body;
+
+    if (isLike) {
+
+      let row = await models.rate_like.findOne({
+        where: {
+          rateId,
+          userId: user.id
+        }
+      });
+
+      if (row) throw new Error('你已经点赞了，不能重复点赞');
+
+      await models.rate_like.create({
+        rateId,
+        userId: user.id
+      });
+
+      ctx.sendRes(null, 0, '点赞成功');
+    } else {
+      let num = await models.rate_like.destroy({
+        where: {
+          rateId,
+          userId: user.id
+        }
+      });
+
+      if (num === 0) throw new Error('你还没给该评价点赞');
+
+      ctx.sendRes(null, 0, '取消点赞成功');
+    }
   } catch (err) {
     ctx.sendRes(null, -1, err.message);
   }

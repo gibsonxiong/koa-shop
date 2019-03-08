@@ -9,6 +9,7 @@ const cors = require('koa2-cors');
 const sendRes = require('./middlewares/sendRes');
 
 const db = require('./db');
+const sms = require('./sms');
 
 // error handler
 onerror(app)
