@@ -8,6 +8,10 @@ module.exports = function(){
             }
         }
 
+        ctx.sendResObject = (obj)=>{
+            ctx.body = obj;
+        }
+
         await next();
     };
 }
