@@ -9,6 +9,24 @@ exports.getDayEndTime = function (date = new Date()) {
     return new Date(new Date(date.toLocaleDateString()).getTime() + 24 * 60 * 60 * 1000 - 1);
 }
 
+exports.adjustDate = function (date, type, num) {
+    let adjust = 0;
+
+    if (type == 'd') {
+        adjust = 24 * 60 * 60 * 1000 * num;
+    } else if (type == 'h') {
+        adjust = 60 * 60 * 1000 * num;
+    } else if (type == 'm') {
+        adjust = 60 * 1000 * num;
+    } else if (type == 's') {
+        adjust = 1000 * num;
+    }
+
+    return new Date(
+        date.getTime() + adjust
+    );
+}
+
 exports.randomNum = function (min, max) {
     return parseInt(Math.random() * (max - min + 1) + min, 10);
 

@@ -148,7 +148,7 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
         (SELECT * from (
         select
 
-          \`item\`.\`id\`, \`item\`.\`name\`, \`item\`.\`desc\`, \`item\`.\`categoryId\`, \`item\`.\`imgList\`, \`item\`.\`propvalueList\`,\`item\`.\`disabled\`, \`item\`.\`detail\`,
+          \`item\`.\`id\`, \`item\`.\`name\`, \`item\`.\`desc\`, \`item\`.\`categoryId\`, \`item\`.\`imgList\`, \`item\`.\`propvalueList\`,\`item\`.\`disabled\`, \`item\`.\`detail\`,\`item\`.\`createTime\`,
           \`item_count\`.\`itemId\` AS \`item_count.itemId\`,
           \`item_count\`.\`saleCount\` AS \`item_count.saleCount\`, 
           \`item_count\`.\`viewCount\` AS \`item_count.viewCount\`,
@@ -162,7 +162,7 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
         FROM \`item\` AS \`item\`
         LEFT JOIN \`item_count\` AS \`item_count\` ON \`item\`.\`id\` = \`item_count\`.\`itemId\`
   
-        ${where ?  `where ${where}` : ``}
+        ${where ? `where ${where}` : ``}
   
         ) as \`a\`
         ORDER BY \`a\`.\`rateGoodRatio\` desc 
@@ -172,8 +172,8 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
         AS \`item\` 
         LEFT OUTER JOIN \`sku\` AS \`skus\` ON \`item\`.\`id\` = \`skus\`.\`itemId\` 
       `, {
-        nest: true
-      });
+          nest: true
+        });
     } else if (query.order == 'sale') {
       rows = await db.query(`
     SELECT 
@@ -188,7 +188,7 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
     FROM 
       (SELECT 
       
-        \`item\`.\`id\`, \`item\`.\`name\`, \`item\`.\`desc\`, \`item\`.\`categoryId\`, \`item\`.\`imgList\`, \`item\`.\`propvalueList\`,\`item\`.\`disabled\`, \`item\`.\`detail\`,
+        \`item\`.\`id\`, \`item\`.\`name\`, \`item\`.\`desc\`, \`item\`.\`categoryId\`, \`item\`.\`imgList\`, \`item\`.\`propvalueList\`,\`item\`.\`disabled\`, \`item\`.\`detail\`,\`item\`.\`createTime\`,
         \`item_count\`.\`itemId\` AS \`item_count.itemId\`,
         \`item_count\`.\`saleCount\` AS \`item_count.saleCount\`, 
         \`item_count\`.\`viewCount\` AS \`item_count.viewCount\`,
@@ -201,7 +201,7 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
       FROM \`item\` AS \`item\`
       LEFT JOIN \`item_count\` AS \`item_count\` ON \`item\`.\`id\` = \`item_count\`.\`itemId\`
 
-      ${where ?  `where ${where}` : ``}
+      ${where ? `where ${where}` : ``}
 
       ORDER BY \`item_count\`.\`saleCount\` desc 
       LIMIT ${offset}, ${limit}
@@ -210,8 +210,8 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
       AS \`item\` 
       LEFT OUTER JOIN \`sku\` AS \`skus\` ON \`item\`.\`id\` = \`skus\`.\`itemId\` 
     `, {
-        nest: true
-      });
+          nest: true
+        });
     } else if (query.order == 'priceAsc' || query.order == 'priceDesc') {
       rows = await db.query(`
       SELECT 
@@ -227,7 +227,7 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
         (SELECT * from (
         select
 
-          \`item\`.\`id\`, \`item\`.\`name\`, \`item\`.\`desc\`, \`item\`.\`categoryId\`, \`item\`.\`imgList\`, \`item\`.\`propvalueList\`,\`item\`.\`disabled\`, \`item\`.\`detail\`,
+          \`item\`.\`id\`, \`item\`.\`name\`, \`item\`.\`desc\`, \`item\`.\`categoryId\`, \`item\`.\`imgList\`, \`item\`.\`propvalueList\`,\`item\`.\`disabled\`, \`item\`.\`detail\`,\`item\`.\`createTime\`,
           \`item_count\`.\`itemId\` AS \`item_count.itemId\`,
           \`item_count\`.\`saleCount\` AS \`item_count.saleCount\`, 
           \`item_count\`.\`viewCount\` AS \`item_count.viewCount\`,
@@ -241,7 +241,7 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
         FROM \`item\` AS \`item\`
         LEFT JOIN \`item_count\` AS \`item_count\` ON \`item\`.\`id\` = \`item_count\`.\`itemId\`
   
-        ${where ?  `where ${where}` : ``}
+        ${where ? `where ${where}` : ``}
   
         ) as \`a\`
         ORDER BY \`a\`.\`itemPrice\` ${query.order == 'priceAsc' ? 'asc' : 'desc'} 
@@ -251,8 +251,8 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
         AS \`item\` 
         LEFT OUTER JOIN \`sku\` AS \`skus\` ON \`item\`.\`id\` = \`skus\`.\`itemId\` 
       `, {
-        nest: true
-      });
+          nest: true
+        });
     }
 
     let result = groupRows(rows, 'skus');
@@ -263,6 +263,7 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
       let prices = row.skus.map(item => item.price);
       row.minPrice = prices.length === 0 ? 0 : Math.min(...prices);
       row.maxPrice = prices.length === 0 ? 0 : Math.max(...prices);
+      row.isNew = row.createTime >= utils.adjustDate(new Date(), 'd', -3);
     })
 
     ctx.sendRes(result);

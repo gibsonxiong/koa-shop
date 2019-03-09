@@ -41,25 +41,54 @@ router.get('/items/:itemId', tokenMiddleware(false), async function (ctx, next) 
       itemId
     } = ctx.params;
 
+    let {
+      flag,
+      pageSize
+    } = ctx.query;
+
+    let where = {
+      itemId
+    };
+
+    if (flag === 'good') {
+      where.score = {
+        $in: [4, 5],
+      };
+    } else if (flag === 'middle') {
+      where.score = 3;
+    } else if (flag === 'bad') {
+      where.score = {
+        $in: [1, 2],
+      };
+    }
+
+    pageSize = pageSize ? Number(pageSize) : undefined;
     let rows = await models.rate.findAll({
-      where: {
-        itemId
-      },
-      attributes:{
-        include:[[db.fn('COUNT',db.col('rate_likes.id')),'likeCount']]
-      },
+      where,
+      // attributes:{
+      //   include:[[db.fn('COUNT',db.col('rate_likes.id')),'likeCount']]
+      // },
       include: [
         {
-          model: models.user
+          model: models.user,
         },
         {
           model: models.rate_like
         }
-      ]
+      ],
+
+      limit: pageSize
     });
 
     rows.forEach(row => {
       row.setDataValue('rateImgList', row.rateImgList ? row.rateImgList.split(',') : []);
+
+      row.setDataValue('likeCount', row.rate_likes.length);
+
+      let myRateLike = row.rate_likes.find(item => item.userId == user.id);
+      row.setDataValue('rateLikeId', myRateLike ? myRateLike.id : null);
+
+      delete row.dataValues.rate_likes;
     });
 
     ctx.sendRes(rows);
@@ -160,6 +189,7 @@ router.put('/', tokenMiddleware(), async function (ctx, next) {
 router.post('/:rateId/like', tokenMiddleware(), async function (ctx, next) {
   try {
     let user = ctx.user;
+    let { rateId } = ctx.params;
 
     let {
       isLike = true
@@ -176,12 +206,14 @@ router.post('/:rateId/like', tokenMiddleware(), async function (ctx, next) {
 
       if (row) throw new Error('你已经点赞了，不能重复点赞');
 
-      await models.rate_like.create({
+      let rateLike = await models.rate_like.create({
         rateId,
         userId: user.id
       });
 
-      ctx.sendRes(null, 0, '点赞成功');
+      ctx.sendRes({
+        rateLikeId: rateLike.id
+      }, 0, '点赞成功');
     } else {
       let num = await models.rate_like.destroy({
         where: {
@@ -192,7 +224,9 @@ router.post('/:rateId/like', tokenMiddleware(), async function (ctx, next) {
 
       if (num === 0) throw new Error('你还没给该评价点赞');
 
-      ctx.sendRes(null, 0, '取消点赞成功');
+      ctx.sendRes({
+        rateLikeId: null
+      }, 0, '取消点赞成功');
     }
   } catch (err) {
     ctx.sendRes(null, -1, err.message);
