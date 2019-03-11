@@ -5,7 +5,8 @@ const {
 } = db;
 const tokenMiddleware = require('../middlewares/token');
 const utils = require('../utils');
-const Promise = require('bluebird')
+const Promise = require('bluebird');
+const flashbuyCtrl = require('../controllers/flashbuy');
 
 router.prefix('/items')
 
@@ -374,6 +375,11 @@ router.get('/:itemId', tokenMiddleware(false), async function (ctx) {
     row.dataValues.postFee = 0;
     row.dataValues.saleCount = itemCount ? itemCount.saleCount : 0;
     row.dataValues.rateCount = itemCount ? itemCount.rateCount : 0;
+
+    //限时抢购
+    let flashbuy = await flashbuyCtrl.getFlashbuyInfo(row.flashbuyId, row.id);
+
+    row.setDataValue('flashbuy',flashbuy);
 
     //记录足迹
     if (user) {

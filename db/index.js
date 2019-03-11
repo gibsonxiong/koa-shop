@@ -83,6 +83,11 @@ sequelize.import('../models/rate');
 sequelize.import('../models/rate_like');
 sequelize.import('../models/refund');
 sequelize.import('../models/search_history');
+sequelize.import('../models/deliver');
+sequelize.import('../models/activity');
+sequelize.import('../models/flashbuy');
+sequelize.import('../models/flashbuy_item');
+sequelize.import('../models/flashbuy_item_sku');
 
 const {
     models
@@ -130,6 +135,10 @@ models.rate.hasMany(models.rate_like, {
 
 models.refund.belongsTo(models.order_item, {
     foreignKey: 'orderItemId'
+});
+
+models.flashbuy_item.hasMany(models.flashbuy_item_sku, {
+    foreignKey: 'flashbuyItemId'
 });
 
 module.exports = sequelize;

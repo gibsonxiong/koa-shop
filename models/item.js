@@ -37,12 +37,20 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.TEXT,
       allowNull: true
     },
+
+    flashbuyId:{
+      type: DataTypes.INTEGER(11),
+      allowNull: true,
+      comment:'限时抢购Id'
+    },
   
     createTime: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue:DataTypes.NOW  
     },
+
+    
   }, {
     tableName: 'item'
   });

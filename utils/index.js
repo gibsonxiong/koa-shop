@@ -41,6 +41,15 @@ exports.genOrderNo = function () {
     return new Date().getTime() + outTradeNo;
 }
 
+exports.genSmsCode = function(){
+    var smsCode = ""; //订单号
+    for (var i = 0; i < 6; i++) //6位随机数，用以加在时间戳后面。
+    {
+        smsCode += Math.floor(Math.random() * 10);
+    }
+    return smsCode;
+}
+
 exports.uniqueArray = function (array) {
     var temp = {},
         r = [],

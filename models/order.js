@@ -83,7 +83,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     cancelReason:{
-      type: DataTypes.STRING(11),
+      type: DataTypes.STRING(20),
       allowNull: true
     },
     createTime: {
@@ -94,6 +94,14 @@ module.exports = function(sequelize, DataTypes) {
     payTime:{
       type: DataTypes.DATE,
       allowNull: true,
+    },
+    deliverCompany:{
+      type: DataTypes.STRING(20),
+      allowNull: true
+    },
+    deliverPostId:{
+      type: DataTypes.STRING(100),
+      allowNull: true
     },
     deliverTime:{
       type: DataTypes.DATE,

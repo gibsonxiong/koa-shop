@@ -9,6 +9,7 @@ const axios = require('axios');
 const itemCountCtrl = require('../controllers/item_count');
 const orderCtrl = require('../controllers/order');
 const config = require('../config');
+const validate = require('../validate');
 
 router.prefix('/orders');
 
@@ -317,6 +318,26 @@ router.post('/:orderId/deliver', async function (ctx, next) {
     let {
       orderId
     } = ctx.params;
+    let {
+      deliverCompany,
+      deliverPostId
+    } = ctx.request.body;
+
+    let [invalid, msg] = new validate.Validator({
+      deliverCompany,
+      deliverPostId
+    }, {
+        'deliverCompany': [{
+          name: 'required',
+          msg: '物流公司不能为空'
+        }],
+        'deliverPostId': [{
+          name: 'required',
+          msg: '物流单号不能为空'
+        }],
+      }).validate();
+
+    if (invalid) throw new Error(msg);
 
     let order = await models.order.findById(orderId, {
       include: [{
@@ -329,10 +350,67 @@ router.post('/:orderId/deliver', async function (ctx, next) {
 
     await order.update({
       status: '3',
+      deliverCompany,
+      deliverPostId,
       deliverTime: Date.now()
     });
 
     ctx.sendRes(null, 0, '订单发货成功');
+  } catch (err) {
+    ctx.sendRes(null, -1, err.message);
+  }
+});
+
+router.get('/:orderId/getDeliver', tokenMiddleware(), async function (ctx, next) {
+  try {
+    let user = ctx.user;
+    let {
+      orderId
+    } = ctx.params;
+
+    let order = await models.order.findById(orderId, {
+      where: {
+        userId: user.id
+      }
+
+    });
+
+    if (!order) throw new Error('该订单不存在');
+
+    let firstOrderItem = await models.order_item.findOne({
+      where: {
+        orderId
+      }
+    });
+
+    let deliverCompany = await models.deliver.findOne({
+      where: {
+        code: order.deliverCompany
+      }
+    });
+
+    let res = (await axios.get(`https://www.kuaidi100.com/query`, {
+      params: {
+        type: order.deliverCompany,
+        postid: order.deliverPostId
+      }
+    })).data;
+
+    let detailData = [];
+    if (res.status == '200') {
+      detailData = res.data;
+    }
+
+    ctx.sendRes({
+      firstOrderItem,
+      deliverCompany,
+      deliverPostId: order.deliverPostId,
+      state: res.state,
+      detailData: detailData
+    });
+
+
+
   } catch (err) {
     ctx.sendRes(null, -1, err.message);
   }
