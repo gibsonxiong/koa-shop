@@ -2,6 +2,7 @@ const router = require('koa-router')();
 const {models} = require('../db');
 const tokenMiddleware = require('../middlewares/token');
 const Promise = require('bluebird');
+const flashbuyCtrl = require('../controllers/flashbuy');
 
 router.prefix('/shopcarts');
 
@@ -22,14 +23,11 @@ router.get('/', tokenMiddleware(), async function (ctx, next) {
 
     await Promise.each(rows, async row => {
       row.item.setDataValue('imgList', row.item.imgList.split(','));
-      // let propvalues = row.sku.propvalueList.split('|').map(item => item.split(':')[1]);
-      // let values = await models.propvalue.findAll({
-      //   where: {
-      //     id: propvalues
-      //   },
-      //   raw: true
-      // })
-      // row.sku.setDataValue('propDesc', values.map(value=>value.name).join(';'));
+      
+      //限时抢购
+      let flash = await flashbuyCtrl.getFlash(row.item.flashbuyId, row.item.id, row.skuId);
+
+      row.setDataValue('flash',flash);
     });
 
     ctx.sendRes(rows);

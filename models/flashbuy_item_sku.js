@@ -10,6 +10,10 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.INTEGER(10),
             allowNull: false
         },
+        skuId: {
+            type: DataTypes.INTEGER(10),
+            allowNull: false
+        },
         price: {
             type: DataTypes.DECIMAL,
             allowNull: false,

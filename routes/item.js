@@ -149,7 +149,7 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
         (SELECT * from (
         select
 
-          \`item\`.\`id\`, \`item\`.\`name\`, \`item\`.\`desc\`, \`item\`.\`categoryId\`, \`item\`.\`imgList\`, \`item\`.\`propvalueList\`,\`item\`.\`disabled\`, \`item\`.\`detail\`,\`item\`.\`createTime\`,
+          \`item\`.\`id\`, \`item\`.\`name\`, \`item\`.\`desc\`, \`item\`.\`categoryId\`, \`item\`.\`imgList\`, \`item\`.\`propvalueList\`,\`item\`.\`disabled\`, \`item\`.\`detail\`,\`item\`.\`createTime\`,\`item\`.\`flashbuyId\`,
           \`item_count\`.\`itemId\` AS \`item_count.itemId\`,
           \`item_count\`.\`saleCount\` AS \`item_count.saleCount\`, 
           \`item_count\`.\`viewCount\` AS \`item_count.viewCount\`,
@@ -189,7 +189,7 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
     FROM 
       (SELECT 
       
-        \`item\`.\`id\`, \`item\`.\`name\`, \`item\`.\`desc\`, \`item\`.\`categoryId\`, \`item\`.\`imgList\`, \`item\`.\`propvalueList\`,\`item\`.\`disabled\`, \`item\`.\`detail\`,\`item\`.\`createTime\`,
+        \`item\`.\`id\`, \`item\`.\`name\`, \`item\`.\`desc\`, \`item\`.\`categoryId\`, \`item\`.\`imgList\`, \`item\`.\`propvalueList\`,\`item\`.\`disabled\`, \`item\`.\`detail\`,\`item\`.\`createTime\`,\`item\`.\`flashbuyId\`,
         \`item_count\`.\`itemId\` AS \`item_count.itemId\`,
         \`item_count\`.\`saleCount\` AS \`item_count.saleCount\`, 
         \`item_count\`.\`viewCount\` AS \`item_count.viewCount\`,
@@ -228,7 +228,7 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
         (SELECT * from (
         select
 
-          \`item\`.\`id\`, \`item\`.\`name\`, \`item\`.\`desc\`, \`item\`.\`categoryId\`, \`item\`.\`imgList\`, \`item\`.\`propvalueList\`,\`item\`.\`disabled\`, \`item\`.\`detail\`,\`item\`.\`createTime\`,
+          \`item\`.\`id\`, \`item\`.\`name\`, \`item\`.\`desc\`, \`item\`.\`categoryId\`, \`item\`.\`imgList\`, \`item\`.\`propvalueList\`,\`item\`.\`disabled\`, \`item\`.\`detail\`,\`item\`.\`createTime\`,\`item\`.\`flashbuyId\`,
           \`item_count\`.\`itemId\` AS \`item_count.itemId\`,
           \`item_count\`.\`saleCount\` AS \`item_count.saleCount\`, 
           \`item_count\`.\`viewCount\` AS \`item_count.viewCount\`,
@@ -258,13 +258,20 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
 
     let result = groupRows(rows, 'skus');
 
-    result.forEach(row => {
+    await Promise.each(result,async row => {
       row.imgList = row.imgList.split(',');
 
       let prices = row.skus.map(item => item.price);
       row.minPrice = prices.length === 0 ? 0 : Math.min(...prices);
       row.maxPrice = prices.length === 0 ? 0 : Math.max(...prices);
       row.isNew = row.createTime >= utils.adjustDate(new Date(), 'd', -3);
+
+      let flash = null;
+      if(row.flashbuyId){
+        flash = await flashbuyCtrl.getFlash(row.flashbuyId, row.id);
+      }
+
+      row.flash = flash;
     })
 
     ctx.sendRes(result);
@@ -377,7 +384,7 @@ router.get('/:itemId', tokenMiddleware(false), async function (ctx) {
     row.dataValues.rateCount = itemCount ? itemCount.rateCount : 0;
 
     //限时抢购
-    let flashbuy = await flashbuyCtrl.getFlashbuyInfo(row.flashbuyId, row.id);
+    let flashbuy = await flashbuyCtrl.getFlash(row.flashbuyId, row.id);
 
     row.setDataValue('flashbuy',flashbuy);
 

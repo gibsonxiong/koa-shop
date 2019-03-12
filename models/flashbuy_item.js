@@ -32,6 +32,16 @@ module.exports = function (sequelize, DataTypes) {
             allowNull: false,
             defaultValue: '0.00'
         },
+        itemMaxPrice: {
+            type: DataTypes.DECIMAL,
+            allowNull: false,
+            defaultValue: '0.00'
+        },
+        flashMaxPrice: {
+            type: DataTypes.DECIMAL,
+            allowNull: false,
+            defaultValue: '0.00'
+        },
         disabled: {
             type: DataTypes.BOOLEAN,
             allowNull: false,

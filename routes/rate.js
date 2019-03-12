@@ -144,8 +144,9 @@ router.put('/', tokenMiddleware(), async function (ctx, next) {
     let createData = [];
 
     //todo:事务
-    let order = await models.order.findById(params.orderId, {
+    let order = await models.order.findOne({
       where: {
+        id:params.orderId,
         userId: user.id
       }
     });

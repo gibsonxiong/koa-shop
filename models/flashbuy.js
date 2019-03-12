@@ -14,6 +14,11 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.DATE,
             allowNull: false
         },
+        publicTime:{
+            type: DataTypes.DATE,
+            allowNull: false,
+            comment:'公开时间'
+        },
         startTime: {
             type: DataTypes.DATE,
             allowNull: false

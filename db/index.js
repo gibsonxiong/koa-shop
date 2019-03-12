@@ -3,7 +3,7 @@ const {Op} = Sequelize;
 
 var config = {
     dialect: 'mysql',
-    database: 'shop',
+    database: 'vue_shop',
     username: 'root',
     password: 'qwer1234',
     host: '129.204.29.9',
@@ -135,6 +135,10 @@ models.rate.hasMany(models.rate_like, {
 
 models.refund.belongsTo(models.order_item, {
     foreignKey: 'orderItemId'
+});
+
+models.flashbuy.hasMany(models.flashbuy_item, {
+    foreignKey: 'flashbuyId'
 });
 
 models.flashbuy_item.hasMany(models.flashbuy_item_sku, {

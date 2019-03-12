@@ -70,7 +70,7 @@ router.post('/getSmsCode', async function (ctx, next) {
     await redis.setAsync(key, smsCode);
     await redis.expireAsync(key, 5 * 60);
 
-    // sms.sendSms(phone, smsCode, type);
+    sms.sendSms(phone, smsCode, type);
     console.log(key, smsCode);
     ctx.sendRes(null, 0, '发送验证码成功');
   } catch (err) {

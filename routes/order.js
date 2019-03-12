@@ -10,11 +10,9 @@ const itemCountCtrl = require('../controllers/item_count');
 const orderCtrl = require('../controllers/order');
 const config = require('../config');
 const validate = require('../validate');
+const flashbuyCtrl  = require('../controllers/flashbuy');
 
 router.prefix('/orders');
-
-
-
 
 //订单列表
 router.get('/', tokenMiddleware(), async function (ctx, next) {
@@ -87,8 +85,9 @@ router.post('/build', tokenMiddleware(), async function (ctx, next) {
     //地址
     let address;
     if (addressId) {
-      address = await models.user_addr.findById(addressId, {
+      address = await models.user_addr.findOne({
         where: {
+          id:addressId,
           userId: user.id
         }
       });
@@ -131,13 +130,19 @@ router.post('/build', tokenMiddleware(), async function (ctx, next) {
       let item = await models.item.findById(itemId);
       let sku = await models.sku.findById(skuId);
 
-      itemFee += sku.price * quantity;
+      //限时抢购
+      let flash = await flashbuyCtrl.getFlash(item.flashbuyId, itemId, skuId);
+
+      //合计
+      let price = flash && flash.status == 1 ? flash.sku.flashPrice : sku.price;
+      itemFee += price * quantity;
       itemCount += quantity;
 
       item.setDataValue('imgList', item.imgList.split(','));
       orderItems.push({
         item,
         sku,
+        flash,
         quantity
       })
     });
@@ -247,8 +252,9 @@ router.post('/:orderId/payCallback', tokenMiddleware(), async function (ctx, nex
     } = ctx.params;
 
 
-    let order = await models.order.findById(orderId, {
+    let order = await models.order.findOne({
       where: {
+        id:orderId,
         userId: user.id
       },
       include: [{
@@ -368,8 +374,9 @@ router.get('/:orderId/getDeliver', tokenMiddleware(), async function (ctx, next)
       orderId
     } = ctx.params;
 
-    let order = await models.order.findById(orderId, {
+    let order = await models.order.findOne({
       where: {
+        id:orderId,
         userId: user.id
       }
 
@@ -424,8 +431,9 @@ router.post('/:orderId/confirmReceive', tokenMiddleware(), async function (ctx, 
       orderId
     } = ctx.params;
 
-    let order = await models.order.findById(orderId, {
+    let order = await models.order.findOne({
       where: {
+        id:orderId,
         userId: user.id
       },
       include: [{
@@ -463,8 +471,9 @@ router.post('/:orderId/cancel', tokenMiddleware(), async function (ctx, next) {
       cancelReason
     } = ctx.request.body;
 
-    let order = await models.order.findById(orderId, {
+    let order = await models.order.findOne({
       where: {
+        id:orderId,
         userId: user.id
       },
       include: [{

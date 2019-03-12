@@ -5,12 +5,13 @@ const {
 
 //商品统计
 module.exports = {
-    async getFlashbuyInfo(flashbuyId, itemId) {
+    async getFlash(flashbuyId, itemId, skuId) {
         let now = new Date();
-        let flashbuy = await models.flashbuy.findById(flashbuyId, {
+        let flashbuy = await models.flashbuy.findOne({
             where: {
-                startTime: {
-                    $lte: now
+                id:flashbuyId,
+                publicTime:{
+                    $lte:now
                 },
                 endTime: {
                     $gte: now
@@ -20,7 +21,16 @@ module.exports = {
 
         if(!flashbuy) return null;
 
-        let flashbuyItem = await models.flashbuy_item.findOne({
+        //活动状态 0-未开始 1-进行中
+        let status = 0;
+
+        if(flashbuy.startTime > now ) {
+            status = 0;
+        }else if(flashbuy.endTime > now){
+            status = 1;
+        }
+
+        let flashItem = await models.flashbuy_item.findOne({
             where:{
                 flashbuyId,
                 itemId
@@ -30,9 +40,43 @@ module.exports = {
             ]
         });
 
+        flashItem.setDataValue('progress',Math.ceil(flashItem.soldCount/flashItem.quantity * 100));
+
+        let sku
+        if(skuId){
+            sku = flashItem.flashbuy_item_skus.find(sku => sku.skuId == skuId);
+        }
+        
         return {
+            status,
             flashbuy,
-            flashbuyItem
+            item:flashItem,
+            sku
         };
-    }
+    },
+
+    async getCurrentFlashbuy() {
+        let now = new Date();
+        let flashbuys = await models.flashbuy.findAll({
+            where: {
+                startTime: {
+                    $lte: now
+                },
+                endTime: {
+                    $gte: now
+                }
+            },
+            include:[
+                {model:models.flashbuy_item}
+            ],
+            order:[
+                ['startTime','desc']
+            ]
+        });
+
+        let current =  flashbuys.length > 0 ? flashbuys[0] :null;
+
+            
+        return current;
+    },
 }

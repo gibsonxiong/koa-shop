@@ -1,4 +1,3 @@
-let items = require('./item');
 let skus = require('./sku');
 let flashbuyItems = require('./flashbuy_item');
 
@@ -10,6 +9,7 @@ flashbuyItems.forEach(flashbuyItem=>{
     _skus.forEach(_sku=>{
         flashbuyItemSkus.push({
             flashbuyItemId:flashbuyItem.itemId,
+            skuId:_sku.id,
             price: _sku.price,
             flashPrice: _sku.price - 2
         });

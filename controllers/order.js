@@ -4,8 +4,9 @@ const {
 } = db;
 const Promise = require('bluebird');
 const utils = require('../utils');
+const flashbuyCtrl = require('../controllers/flashbuy');
 
-//商品统计
+//提交订单
 module.exports = {
     async create(userId, params) {
         if (!userId) throw new Error('未找到该用户');
@@ -62,14 +63,20 @@ module.exports = {
             let item = await models.item.findById(itemId);
             let sku = await models.sku.findById(skuId);
 
-            itemFee += sku.price * quantity;
+            //限时抢购
+            let flash = await flashbuyCtrl.getFlash(item.flashbuyId, itemId, skuId);
+
+            //合计
+            let price = flash && flash.status == 1 ? flash.sku.flashPrice : sku.price;
+            itemFee += price * quantity;
             itemCount += quantity;
 
             item.setDataValue('imgList', item.imgList.split(','));
             orderItems.push({
                 item,
                 sku,
-                quantity
+                quantity,
+                flash
             })
         });
 
@@ -162,6 +169,7 @@ module.exports = {
                 if (num === 0) throw new Error('使用优惠券出错');
             }
 
+
             //子订单插入数据
             let orderItemData = [];
 
@@ -179,6 +187,25 @@ module.exports = {
                     transaction: t
                 });
 
+                //如果是限时抢购商品
+                if (orderItem.flash && orderItem.flash.status == 1) {
+                    let flashItem = orderItem.flash.item;
+
+                    if( flashItem.quantity - flashItem.soldCount == 0) throw new Error('限时抢购商品已抢完')
+
+                    if( orderItem.quantity >  flashItem.quantity - flashItem.soldCount) throw new Error('限时抢购数量不足');
+
+                    //增加销量
+                    await models.flashbuy_item.increment('soldCount', {
+                        where:{
+                            id: orderItem.flash.item.id
+                        },
+                        by: orderItem.quantity,
+                        transaction: t
+                    })
+                }
+
+                let price = orderItem.flash && orderItem.flash.status == 1 ? orderItem.flash.sku.flashPrice : orderItem.sku.price;
                 orderItemData.push({
                     orderId: orderRow.id,
                     itemImg: orderItem.item.getDataValue('imgList')[0],
@@ -186,7 +213,7 @@ module.exports = {
                     skuId: orderItem.sku.id,
                     itemName: orderItem.item.name,
                     itemPropvalues: orderItem.sku.propvalueTextList,
-                    itemPrice: orderItem.sku.price,
+                    itemPrice: price,
                     quantity: orderItem.quantity
                 });
             });

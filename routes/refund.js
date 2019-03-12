@@ -63,8 +63,9 @@ router.get('/:refundId', tokenMiddleware(), async function (ctx, next) {
       refundId
     } = ctx.params;
 
-    let refund = await models.refund.findById(refundId,{
+    let refund = await models.refund.findOne({
       where:{
+        id:refundId,
         userId:user.id
       },
       include:[
