@@ -5,7 +5,7 @@ const storage = multer.diskStorage({
       cb(null, path.resolve(__dirname,'../public/upload/temp'));
     },
     filename: function (req, file, cb) {
-      cb(null,  Date.now())
+      cb(null,  Date.now() + '')
     }
   })
   
