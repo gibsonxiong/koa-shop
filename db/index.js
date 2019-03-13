@@ -6,7 +6,7 @@ var config = {
     database: 'vue_shop',
     username: 'root',
     password: 'qwer1234',
-    host: '129.204.29.9',
+    host: 'localhost',
     port: 3306,
 };
 
