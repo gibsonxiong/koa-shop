@@ -1,7 +1,8 @@
 const multer = require('koa-multer');
+const path = require('path');
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, 'public/upload/temp')
+      cb(null, path.resolve(__dirname,'../public/upload/temp'));
     },
     filename: function (req, file, cb) {
       cb(null,  Date.now()  + '-' + file.originalname )
