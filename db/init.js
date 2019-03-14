@@ -3,6 +3,10 @@ const {
     models
 } = db;
 const utils = require('../utils');
+const glob = require('glob');
+const path = require('path');
+
+
 
 async function init() {
 
@@ -11,62 +15,40 @@ async function init() {
         force: true
     });
 
-    let categorys = require('./data/category');
-
-    let items = require('./data/item');
-
-    let users = require('./data/user');
-
-    let propnames = require('./data/propname');
-
-    let propvalues = require('./data/propvalue');
-
-    let skus = require('./data/sku');
-
-    let coupons = require('./data/coupon');
-
-    let user_coupons = require('./data/user_coupon');
-
-    let itemCounts = require('./data/item_count');
-
-    const regions = require('./data/region');
-
-    let user_addrs = require('./data/user_addr');
-
-    const delivers = require('./data/deliver');
-
-    const flashbuys = require('./data/flashbuy');
-
-    const flashbuyItems = require('./data/flashbuy_item');
-
-    const flashbuyItemSkus = require('./data/flashbuy_item_sku');
 
 
+    const dataMap = {};
+    glob.sync(path.resolve(__dirname, './data/*.js')).forEach(_path => {
+        let name = path.basename(_path, '.js');
+        dataMap[name] = require(_path);
+    });
 
-    await models.category.bulkCreate(categorys);
 
-    await models.propname.bulkCreate(propnames);
+    await models.category.bulkCreate(dataMap.category);
 
-    await models.propvalue.bulkCreate(propvalues);
+    await models.propname.bulkCreate(dataMap.propname);
 
-    await models.item.bulkCreate(items);
+    await models.propvalue.bulkCreate(dataMap.propvalue);
 
-    await models.item_count.bulkCreate(itemCounts);
+    await models.item.bulkCreate(dataMap.item);
 
-    await models.sku.bulkCreate(skus);
+    await models.item_count.bulkCreate(dataMap.item_count);
 
-    await models.coupon.bulkCreate(coupons);
+    await models.sku.bulkCreate(dataMap.sku);
 
-    await models.region.bulkCreate(regions);
+    await models.coupon.bulkCreate(dataMap.coupon);
 
-    await models.deliver.bulkCreate(delivers);
+    await models.region.bulkCreate(dataMap.region);
 
-    await models.flashbuy.bulkCreate(flashbuys);
+    await models.deliver.bulkCreate(dataMap.deliver);
 
-    await models.flashbuy_item.bulkCreate(flashbuyItems);
+    await models.flashbuy.bulkCreate(dataMap.flashbuy);
 
-    await models.flashbuy_item_sku.bulkCreate(flashbuyItemSkus);
+    await models.flashbuy_item.bulkCreate(dataMap.flashbuy_item);
 
+    await models.flashbuy_item_sku.bulkCreate(dataMap.flashbuy_item_sku);
+
+    //用户
     // await models.user.bulkCreate(users);
 
     // await models.user_coupon.bulkCreate(user_coupons);
@@ -77,4 +59,6 @@ async function init() {
     console.log('数据库初始化成功');
 }
 
-init();
+
+
+// init();

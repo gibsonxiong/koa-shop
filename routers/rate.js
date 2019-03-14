@@ -85,7 +85,7 @@ router.get('/items/:itemId', tokenMiddleware(false), async function (ctx, next) 
 
       row.setDataValue('likeCount', row.rate_likes.length);
 
-      let myRateLike = row.rate_likes.find(item => item.userId == user.id);
+      let myRateLike = user && user.id ?  row.rate_likes.find(item => item.userId == user.id) : null;
       row.setDataValue('rateLikeId', myRateLike ? myRateLike.id : null);
 
       delete row.dataValues.rate_likes;
@@ -176,6 +176,13 @@ router.put('/', tokenMiddleware(), async function (ctx, next) {
       });
 
       await itemCountCtrl.itemCount(p.itemId, 'rateCount', 1);
+      if(p.score <= 5) {
+        await itemCountCtrl.itemCount(p.itemId, 'rateGoodCount', 1);
+      }else if(p.score <=3){
+        await itemCountCtrl.itemCount(p.itemId, 'rateMiddleCount', 1);
+      }else{
+        await itemCountCtrl.itemCount(p.itemId, 'rateBadCount', 1);
+      }
     });
 
     let rows = await models.rate.bulkCreate(createData);

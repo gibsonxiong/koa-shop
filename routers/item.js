@@ -5,38 +5,12 @@ const {
 } = db;
 const tokenMiddleware = require('../middlewares/token');
 const utils = require('../utils');
+const dbUtils = require('../utils/db-utils');
 const Promise = require('bluebird');
 const flashbuyCtrl = require('../controllers/flashbuy');
 
 router.prefix('/items')
 
-
-function groupRows(rows, groupKey) {
-  let result = [];
-  let indexArr = {};   //key 为 row.id  value 为 数组下标
-  let isNullRow = function (row) {
-    return !(row && row.id != null)
-  };
-
-  rows.forEach(row => {
-    let index;
-    if ((index = indexArr[row.id]) != null) {
-      if (isNullRow(row[groupKey])) return;
-      result[index][groupKey].push(row[groupKey]);
-    } else {
-      if (isNullRow(row[groupKey])) {
-        row[groupKey] = [];
-      } else {
-        row[groupKey] = [row[groupKey]];
-      }
-      result.push(row);
-      indexArr[row.id] = result.length - 1;
-    }
-
-  });
-
-  return result;
-}
 
 //商品列表
 router.get('/', tokenMiddleware(false), async function (ctx) {
@@ -256,7 +230,7 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
         });
     }
 
-    let result = groupRows(rows, 'skus');
+    let result = dbUtils.groupRows(rows, 'skus');
 
     await Promise.each(result,async row => {
       row.imgList = row.imgList.split(',');

@@ -12,15 +12,15 @@ redisClient.on("error", function (err) {
     console.error("Error " + err.toString());
 });
 
-async function test() {
-    await redisClient.setAsync("key", "cao", );
-    let a = await redisClient.getAsync("key");
+// async function test() {
+//     await redisClient.setAsync("key", "cao", );
+//     let a = await redisClient.getAsync("key");
 
-    console.log(a);
-}
+//     console.log(a);
+// }
 
 
-test();
+// test();
 
 
 module.exports = redisClient;

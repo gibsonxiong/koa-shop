@@ -1,5 +1,7 @@
 const Sequelize = require('sequelize');
 const {Op} = Sequelize;
+const glob = require('glob');
+const path = require('path');
 
 var config = {
     dialect: 'mysql',
@@ -62,32 +64,10 @@ var sequelize = new Sequelize(config.database, config.username, config.password,
     operatorsAliases
 });
 
-sequelize.import('../models/user');
-sequelize.import('../models/category');
-sequelize.import('../models/item');
-sequelize.import('../models/sku');
-sequelize.import('../models/propname');
-sequelize.import('../models/propvalue');
-sequelize.import('../models/shopcart');
-sequelize.import('../models/favorite');
-sequelize.import('../models/order');
-sequelize.import('../models/order_item');
-sequelize.import('../models/coupon');
-sequelize.import('../models/user_coupon');
-sequelize.import('../models/item_count');
-sequelize.import('../models/region');
-sequelize.import('../models/user_addr');
-sequelize.import('../models/footprint');
-sequelize.import('../models/test');
-sequelize.import('../models/rate');
-sequelize.import('../models/rate_like');
-sequelize.import('../models/refund');
-sequelize.import('../models/search_history');
-sequelize.import('../models/deliver');
-sequelize.import('../models/activity');
-sequelize.import('../models/flashbuy');
-sequelize.import('../models/flashbuy_item');
-sequelize.import('../models/flashbuy_item_sku');
+//加载model
+glob.sync(path.resolve(__dirname,'../models/*.js')).forEach(match=>{
+    sequelize.import(match);
+});
 
 const {
     models
