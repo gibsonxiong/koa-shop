@@ -13,6 +13,7 @@ const utils = require('../utils');
 const validate = require('../validate');
 const sms = require('../sms');
 const redis = require('../redis');
+const core = require('../core');
 const { geetest, gtValidatePromise, gtRegisterPromise } = require('../geetest');
 
 function genNickname() {
@@ -54,7 +55,7 @@ router.post('/getSmsCode', async function (ctx, next) {
 
     try {
       await gtValidatePromise({
-        fallback:ctx.session.fallback,
+        fallback: ctx.session.fallback,
         geetest_challenge,
         geetest_validate,
         geetest_seccode
@@ -176,9 +177,33 @@ router.post('/login', async function (ctx, next) {
 
     if (!row) throw new Error('账户或密码错误');
 
+    let { token, refreshToken } = await core.genToken(row.id);
+
     ctx.sendRes({
-      token: row.id
+      token,
+      refreshToken
     }, 0, '登录成功')
+
+  } catch (err) {
+    ctx.sendRes(null, -1, err.message);
+  }
+});
+
+//刷新token
+router.post('/token/refresh', async function (ctx, next) {
+  try {
+    let {
+      body
+    } = ctx.request;
+
+    let { token, refreshToken } = await core.refreshToken(body.refreshToken);
+
+    ctx.sendRes({
+      token,
+      refreshToken
+    }, 0, '刷新Token成功');
+
+
 
   } catch (err) {
     ctx.sendRes(null, -1, err.message);
@@ -478,7 +503,7 @@ router.get('/deliver', async function (ctx, next) {
 
     ctx.sendRes({
       type,
-      status:res.status,
+      status: res.status,
       data: res.data
     });
 

@@ -24,6 +24,9 @@ router.get('/', tokenMiddleware(), async function (ctx, next) {
         }, {
           model: models.rate_like
         }
+      ],
+      order:[
+        ['createTime','desc']
       ]
     });
 
@@ -71,12 +74,15 @@ router.get('/items/:itemId', tokenMiddleware(false), async function (ctx, next) 
       include: [
         {
           model: models.user,
+          attributes: ['nickname', 'avatar']
         },
         {
           model: models.rate_like
         }
       ],
-
+      order:[
+        ['createTime','desc']
+      ],
       limit: pageSize
     });
 
@@ -85,7 +91,7 @@ router.get('/items/:itemId', tokenMiddleware(false), async function (ctx, next) 
 
       row.setDataValue('likeCount', row.rate_likes.length);
 
-      let myRateLike = user && user.id ?  row.rate_likes.find(item => item.userId == user.id) : null;
+      let myRateLike = user && user.id ? row.rate_likes.find(item => item.userId == user.id) : null;
       row.setDataValue('rateLikeId', myRateLike ? myRateLike.id : null);
 
       delete row.dataValues.rate_likes;
@@ -109,13 +115,21 @@ router.get('/:rateId', tokenMiddleware(false), async function (ctx, next) {
         id: rateId
       },
       include: [{
-        model: models.user
+        model: models.user,
+        attributes: ['nickname', 'avatar']
+      }, {
+        model: models.rate_like
       }]
     });
 
     if (!row) throw new Error('该评价不存在');
 
-    row.setDataValue('rateImgList', row.rateImgList.split(','));
+    row.setDataValue('rateImgList', row.rateImgList ? row.rateImgList.split(',') : []);
+
+    row.setDataValue('likeCount', row.rate_likes.length);
+
+    let myRateLike = user && user.id ? row.rate_likes.find(item => item.userId == user.id) : null;
+    row.setDataValue('rateLikeId', myRateLike ? myRateLike.id : null);
 
     ctx.sendRes(row);
   } catch (err) {
@@ -146,7 +160,7 @@ router.put('/', tokenMiddleware(), async function (ctx, next) {
     //todo:事务
     let order = await models.order.findOne({
       where: {
-        id:params.orderId,
+        id: params.orderId,
         userId: user.id
       }
     });
@@ -176,11 +190,11 @@ router.put('/', tokenMiddleware(), async function (ctx, next) {
       });
 
       await itemCountCtrl.itemCount(p.itemId, 'rateCount', 1);
-      if(p.score <= 5) {
+      if (p.score <= 5) {
         await itemCountCtrl.itemCount(p.itemId, 'rateGoodCount', 1);
-      }else if(p.score <=3){
+      } else if (p.score <= 3) {
         await itemCountCtrl.itemCount(p.itemId, 'rateMiddleCount', 1);
-      }else{
+      } else {
         await itemCountCtrl.itemCount(p.itemId, 'rateBadCount', 1);
       }
     });

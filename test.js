@@ -12,8 +12,17 @@
 // test();
 
 
-//test2
+/////////////////test2
 // let getEntries = require('./utils/getEntries');
 
 
 // let a = getEntries('./routes/*.js','.js');
+
+
+
+//////////////test3
+// var jwt = require('jsonwebtoken');
+// var token = jwt.sign({ foo: 'bar1' }, 'shhhhh');
+
+// var decoded = jwt.verify(token, 'shhhhh');
+// console.log(decoded.foo);
