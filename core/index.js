@@ -1,8 +1,8 @@
 var jwt = require('jsonwebtoken');
 const secret = 'vue_shop';
 const redis = require('../redis');
-// const tokenExpiresIn = 60 * 60 * 12;    // 12h
-const tokenExpiresIn = 10;
+const tokenExpiresIn = 60 * 60 * 12;    // 12h
+
 
 exports.genToken = async function (userId) {
     var token = jwt.sign({ id: userId }, secret, { expiresIn: tokenExpiresIn });
