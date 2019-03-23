@@ -26,3 +26,19 @@
 
 // var decoded = jwt.verify(token, 'shhhhh');
 // console.log(decoded.foo);
+
+
+////////////test4 上传图片到oss
+// let oss = require('./utils/oss');
+// let path = require('path');
+
+// async function put () {
+//   try {
+//     let result = await oss.put('object-name', path.resolve(__dirname,'./app.js'));
+//     console.log(result);
+//   } catch (e) {
+//     console.log(e);
+//   }
+// }
+
+// put();

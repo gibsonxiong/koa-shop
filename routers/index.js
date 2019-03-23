@@ -1,3 +1,4 @@
+const fs = require('fs');
 const router = require('koa-router')();
 const {
   models
@@ -14,6 +15,8 @@ const validate = require('../validate');
 const sms = require('../sms');
 const redis = require('../redis');
 const core = require('../core');
+const oss = require('../utils/oss');
+
 const { geetest, gtValidatePromise, gtRegisterPromise } = require('../geetest');
 
 function genNickname() {
@@ -516,9 +519,18 @@ router.get('/deliver', async function (ctx, next) {
 router.put('/upload', upload.array('img'), async function (ctx, next) {
   try {
     let files = ctx.req.files;
-    files.forEach((file) => {
-      file.src = getUploadPath(file.filename);
-    });
+
+    for(let i =0;i<files.length;i++){
+      let file = files[i];
+
+      let result = await oss.put(`upload/${file.filename}`, file.path,{
+        mime:file.mimetype
+      });
+
+      fs.unlinkSync(file.path);
+
+      file.src = result.url;
+    }
 
     ctx.sendRes(files, 0, '上传成功');
 
