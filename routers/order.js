@@ -11,6 +11,7 @@ const orderCtrl = require('../controllers/order');
 const config = require('../config');
 const validate = require('../validate');
 const flashbuyCtrl  = require('../controllers/flashbuy');
+let {scheduleCache} = require('../utils/schedule');
 
 router.prefix('/orders');
 
@@ -265,6 +266,12 @@ router.post('/:orderId/payCallback', tokenMiddleware(), async function (ctx, nex
     if (!order) throw new Error('该订单不存在');
     if (order.status != '1') throw new Error('订单状态异常');
 
+    //取消定时任务-自动取消订单
+    if(scheduleCache[`cancel_${orderId}`]){
+      scheduleCache[`cancel_${orderId}`].cancel();
+      delete scheduleCache[`cancel_${orderId}`];
+    }
+
     await order.update({
       status: '2',
       payTime: Date.now()
@@ -471,45 +478,47 @@ router.post('/:orderId/cancel', tokenMiddleware(), async function (ctx, next) {
       cancelReason
     } = ctx.request.body;
 
-    let order = await models.order.findOne({
-      where: {
-        id:orderId,
-        userId: user.id
-      },
-      include: [{
-        model: models.order_item
-      }]
-    });
+    // let order = await models.order.findOne({
+    //   where: {
+    //     id:orderId,
+    //     userId: user.id
+    //   },
+    //   include: [{
+    //     model: models.order_item
+    //   }]
+    // });
 
-    if (!order) throw new Error('该订单不存在');
-    if (order.status !== '1') throw new Error('订单状态异常');
+    // if (!order) throw new Error('该订单不存在');
+    // if (order.status !== '1') throw new Error('订单状态异常');
 
-    await db.transaction(async (t) => {
+    // await db.transaction(async (t) => {
 
-      await order.update({
-        status: '9',
-        endTime: Date.now(),
-        cancelReason
-      }, { transaction: t });
+    //   await order.update({
+    //     status: '9',
+    //     endTime: Date.now(),
+    //     cancelReason
+    //   }, { transaction: t });
 
-      await Promise.each(order.order_items, async orderItem => {
+    //   await Promise.each(order.order_items, async orderItem => {
 
-        //恢复库存
-        let sku = await models.sku.findById(orderItem.skuId, {
-          transaction: t
-        });
+    //     //恢复库存
+    //     let sku = await models.sku.findById(orderItem.skuId, {
+    //       transaction: t
+    //     });
 
-        if (!sku) return;
+    //     if (!sku) return;
 
-        await sku.increment('quantity', {
-          by: orderItem.quantity,
-          transaction: t
-        });
-      });
-    });
+    //     await sku.increment('quantity', {
+    //       by: orderItem.quantity,
+    //       transaction: t
+    //     });
+    //   });
+    // });
 
+    let res = await orderCtrl.cancel(user.id, orderId,cancelReason);
 
-    ctx.sendRes(null, 0, '取消订单成功');
+    ctx.sendResObject(res);
+
   } catch (err) {
     ctx.sendRes(null, -1, err.message);
   }

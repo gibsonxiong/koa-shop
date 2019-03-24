@@ -1,13 +1,15 @@
 const db = require('../db');
 const {
-  models
+    models
 } = db;
 const Promise = require('bluebird');
 const utils = require('../utils');
 const flashbuyCtrl = require('../controllers/flashbuy');
+const schedule = require('node-schedule');
+let {scheduleCache} = require('../utils/schedule');
 
 //提交订单
-module.exports = {
+const orderCtrl = {
     async create(userId, params) {
         if (!userId) throw new Error('未找到该用户');
 
@@ -16,7 +18,7 @@ module.exports = {
             addressId,
             couponId,
             remark
-          } = params;
+        } = params;
 
         //地址
         let address;
@@ -55,7 +57,7 @@ module.exports = {
 
         await Promise.each(itemParams, async param => {
             let {
-              itemId,
+                itemId,
                 skuId,
                 quantity
             } = param;
@@ -134,10 +136,10 @@ module.exports = {
                 postFee,
                 orderFee,
                 discountFee: deductPrice,
-                userCouponId: couponId
+                userCouponId: couponId,
             }, {
-                    transaction: t
-                });
+                transaction: t
+            });
 
             //购物车清除
             let shopcartIds = itemParams.map(item => item.shopcartId).filter(item => !!item);
@@ -159,12 +161,12 @@ module.exports = {
                 let [num] = await models.user_coupon.update({
                     used: true
                 }, {
-                        where: {
-                            id: couponId,
-                            used: false
-                        },
-                        transaction: t
-                    });
+                    where: {
+                        id: couponId,
+                        used: false
+                    },
+                    transaction: t
+                });
 
                 if (num === 0) throw new Error('使用优惠券出错');
             }
@@ -191,13 +193,13 @@ module.exports = {
                 if (orderItem.flash && orderItem.flash.status == 1) {
                     let flashItem = orderItem.flash.item;
 
-                    if( flashItem.quantity - flashItem.soldCount == 0) throw new Error('限时抢购商品已抢完')
+                    if (flashItem.quantity - flashItem.soldCount == 0) throw new Error('限时抢购商品已抢完')
 
-                    if( orderItem.quantity >  flashItem.quantity - flashItem.soldCount) throw new Error('限时抢购数量不足');
+                    if (orderItem.quantity > flashItem.quantity - flashItem.soldCount) throw new Error('限时抢购数量不足');
 
                     //增加销量
                     await models.flashbuy_item.increment('soldCount', {
-                        where:{
+                        where: {
                             id: orderItem.flash.item.id
                         },
                         by: orderItem.quantity,
@@ -222,7 +224,23 @@ module.exports = {
                 transaction: t
             });
 
+            //定时任务-超时自动取消订单
+            let endDate = utils.adjustDate(orderRow.createTime, 's', 10);
+            scheduleCache[`cancel_${orderRow.id}`] = schedule.scheduleJob(endDate, function () {
+                try {
+                    let res = orderCtrl.cancel(userId, orderRow.id, '系统自动取消');
+
+                    if (res.code !== 0) throw new Error(res.message);
+                } catch (err) {
+                    console.log('系统自动取消订单失败');
+                    console.log(err);
+                }
+            });
+
         });
+
+
+
         return {
             code: 0,
             data: {
@@ -230,5 +248,62 @@ module.exports = {
             },
             msg: '订单创建成功'
         }
+    },
+
+    //取消订单
+    async cancel(userId, orderId, cancelReason) {
+        let order = await models.order.findOne({
+            where: {
+                id: orderId,
+                userId: userId
+            },
+            include: [{
+                model: models.order_item
+            }]
+        });
+
+        if (!order) throw new Error('该订单不存在');
+        if (order.status !== '1') throw new Error('订单状态异常');
+
+        await db.transaction(async (t) => {
+
+            await order.update({
+                status: '9',
+                endTime: Date.now(),
+                cancelReason
+            }, {
+                transaction: t
+            });
+
+            await Promise.each(order.order_items, async orderItem => {
+
+                //恢复库存
+                let sku = await models.sku.findById(orderItem.skuId, {
+                    transaction: t
+                });
+
+                if (!sku) return;
+
+                await sku.increment('quantity', {
+                    by: orderItem.quantity,
+                    transaction: t
+                });
+            });
+
+            //取消定时任务-自动取消订单
+            if (scheduleCache[`cancel_${orderId}`]) {
+                scheduleCache[`cancel_${orderId}`].cancel();
+                delete scheduleCache[`cancel_${orderId}`];
+            }
+        });
+
+        return {
+            code: 0,
+            data: null,
+            msg: '取消订单成功'
+        }
     }
-}
+};
+
+
+module.exports = orderCtrl;
