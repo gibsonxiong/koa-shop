@@ -6,23 +6,16 @@ const utils = require('../utils');
 const glob = require('glob');
 const path = require('path');
 
-
-
 async function init() {
-
-
     await db.sync({
         force: true
     });
-
-
 
     const dataMap = {};
     glob.sync(path.resolve(__dirname, './data/*.js')).forEach(_path => {
         let name = path.basename(_path, '.js');
         dataMap[name] = require(_path);
     });
-
 
     await models.category.bulkCreate(dataMap.category);
 
@@ -49,16 +42,15 @@ async function init() {
     await models.flashbuy_item_sku.bulkCreate(dataMap.flashbuy_item_sku);
 
     //用户
-    // await models.user.bulkCreate(users);
+    await models.user.bulkCreate(dataMap.user);
 
-    // await models.user_coupon.bulkCreate(user_coupons);
+    await models.user_coupon.bulkCreate(dataMap.user_coupon);
 
-    // await models.user_addr.bulkCreate(user_addrs);
-
+    await models.user_addr.bulkCreate(dataMap.user_addr);
 
     console.log('数据库初始化成功');
 }
 
 
 
-// init();
+init();

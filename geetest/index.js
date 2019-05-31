@@ -1,11 +1,7 @@
 var Geetest = require('./gt-sdk');
+const config = require('../config');
 
-let geetest = new Geetest({
-    geetest_id: '217ac21771ff1fc0dc339db57eb4e803',
-    geetest_key: '6db0a1496e5fd09478998a393482e772'
-});
-
-
+let geetest = new Geetest(config.geetest);
 
 function gtRegisterPromise() {
     return new Promise((resolve, reject) => {

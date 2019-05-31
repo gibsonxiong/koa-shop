@@ -1,6 +1,7 @@
 const axios = require('axios');
 var querystring = require('querystring');
 var urlencode = require('urlencode');
+const config = require('../config');
 
 // //聚合
 // exports.sendSms = async function (phone, smsCode) {
@@ -23,16 +24,12 @@ var urlencode = require('urlencode');
 
 //全球
 exports.sendSms = async function (phone, smsCode,type) {
-
-    let access_key = '7d5adc480c9fe2f7';
     let template = `您的验证码是${smsCode}，有效时间为5分钟，请勿告知他人！`;
-    let url = `https://api.globalsent.com/send?access_key=${access_key}&mobile=86${phone}&content=${urlencode(template)}`;
+    let url = `https://api.globalsent.com/send?access_key=${config.sms.access_key}&mobile=86${phone}&content=${urlencode(template)}`;
 
     let res = (await axios.get(url)).data;
 
     return res.code === "0000";
-
-
 }
 
 // async function test(){

@@ -2,15 +2,7 @@ const Sequelize = require('sequelize');
 const {Op} = Sequelize;
 const glob = require('glob');
 const path = require('path');
-
-var config = {
-    dialect: 'mysql',
-    database: 'vue_shop',
-    username: 'root',
-    password: 'qwer1234',
-    host: '129.204.43.133',
-    port: 3306,
-};
+const dbConfig = require('../config').db;
 
 const operatorsAliases = {
     $eq: Op.eq,
@@ -49,9 +41,9 @@ const operatorsAliases = {
     $col: Op.col
 };
 
-var sequelize = new Sequelize(config.database, config.username, config.password, {
-    host: config.host,
-    dialect: config.dialect,
+var sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.password, {
+    host: dbConfig.host,
+    dialect: dbConfig.dialect,
     pool: {
         max: 5,
         min: 0,
