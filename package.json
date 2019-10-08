@@ -39,7 +39,6 @@
     "redis": "^2.8.0",
     "request": "^2.88.0",
     "sequelize": "^4.42.0",
-    "sharp": "^0.21.3",
     "urlencode": "^1.1.0"
   },
   "devDependencies": {
