@@ -16,6 +16,7 @@ const sms = require('../sms');
 const redis = require('../redis');
 const core = require('../core');
 const oss = require('../utils/oss');
+const bcryptUtils = require('../bcrypt-utils');
 
 const { geetest, gtValidatePromise, gtRegisterPromise } = require('../geetest');
 
@@ -132,6 +133,9 @@ router.post('/register', async function (ctx, next) {
 
     if (user) throw new Error('该手机号已注册');
 
+    //加密
+    password = await bcryptUtils.hash(password);
+
     let result = await models.user.create({
       phone,
       password,
@@ -173,12 +177,15 @@ router.post('/login', async function (ctx, next) {
 
     let row = await models.user.findOne({
       where: {
-        phone,
-        password
+        phone
       }
     });
 
     if (!row) throw new Error('账户或密码错误');
+
+    let verify = await bcryptUtils.compare(password, row.password);
+
+    if (!verify) throw new Error('账户或密码错误');
 
     let { token, refreshToken } = await core.genToken(row.id);
 

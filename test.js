@@ -42,3 +42,20 @@
 // }
 
 // put();
+
+//hash密码
+const bcryptUtils = require('./bcrypt-utils');
+
+async function test(){
+    let password = '123456';
+
+    let hash = await bcryptUtils.hash(password);
+
+    console.log(hash)
+
+    let res = await bcryptUtils.compare(password, '$2b$10$nWmQ8UrD.hAt88FUKWIDleQOrC.67HcvwQ51PP5t0A8knoRLjzcZ.');
+
+    console.log(res);
+}
+
+test();

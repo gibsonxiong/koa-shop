@@ -12,6 +12,7 @@
     "@alicloud/pop-core": "^1.7.6",
     "ali-oss": "^6.1.0",
     "axios": "^0.18.0",
+    "bcrypt": "^3.0.6",
     "cheerio": "^1.0.0-rc.2",
     "crypto": "^1.0.1",
     "debug": "^2.6.3",

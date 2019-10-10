@@ -22,7 +22,7 @@ router.get('/', tokenMiddleware(), async function (ctx, next) {
     });
 
     rows.forEach(row=>{
-      row.setDataValue('refundImgList', row.refundImgList.split(','));
+      row.setDataValue('refundImgList', (row.refundImgList || '').split(','));
     });
 
     ctx.sendRes(rows);
