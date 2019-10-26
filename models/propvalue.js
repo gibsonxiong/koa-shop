@@ -8,6 +8,10 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true,
       autoIncrement:true
     },
+    shopId:{
+      type: DataTypes.INTEGER(10),
+      allowNull: true
+    },
     propnameId: {
       type: DataTypes.INTEGER(10),
       allowNull: false
@@ -15,7 +19,16 @@ module.exports = function(sequelize, DataTypes) {
     name: {
       type: DataTypes.STRING(255),
       allowNull: false
-    }
+    },
+    remark:{
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    sort: {
+      type: DataTypes.INTEGER(5),
+      allowNull: true,
+      defaultValue:0
+    },
   }, {
     tableName: 'propvalue'
   });

@@ -66,12 +66,20 @@ const {
 } = sequelize;
 
 //关联
+models.propname.hasMany(models.propvalue, {
+    foreignKey: 'propnameId'
+});
+
 models.item.hasMany(models.sku, {
     foreignKey: 'itemId'
 });
 
 models.item.hasOne(models.item_count, {
     foreignKey: 'itemId'
+});
+
+models.item.belongsTo(models.category, {
+    foreignKey: 'categoryId'
 });
 
 models.footprint.belongsTo(models.item, {

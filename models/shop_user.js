@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('user', {
+  return sequelize.define('shop_user', {
     id: {
       type: DataTypes.INTEGER(10),
       allowNull: false,
@@ -9,8 +9,12 @@ module.exports = function(sequelize, DataTypes) {
       autoIncrement:true
     },
     shopId:{
-      type: DataTypes.INTEGER(10),
-      allowNull: true
+      type: DataTypes.INTEGER(11),
+      allowNull: false,
+    },
+    shopRoleId:{
+      type: DataTypes.INTEGER(11),
+      allowNull: true,
     },
     phone: {
       type: DataTypes.STRING(20),
@@ -28,18 +32,7 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING(50),
       allowNull: true,
     },
-    gender:{
-      type: DataTypes.STRING(2),
-      allowNull: false,
-      defaultValue: '0',
-      comment:'0-男 1-女'
-    },
-    balance:{
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-      defaultValue: '0'
-    }
   }, {
-    tableName: 'user'
+    tableName: 'shop_user'
   });
 };

@@ -48,7 +48,6 @@ router.get('/', tokenMiddleware(), async function (ctx, next) {
     rows.forEach(row => {
       let prices = row.item.skus.map(item => item.price);
       row.item.setDataValue('itemPrice', prices.length === 0 ? 0 : Math.min(...prices));
-      row.item.setDataValue('imgList', row.item.imgList.split(','));
     })
 
     ctx.sendRes(rows);

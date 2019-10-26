@@ -8,6 +8,10 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true,
       autoIncrement:true,
     },
+    shopId:{
+      type: DataTypes.INTEGER(10),
+      allowNull: true
+    },
     name: {
       type: DataTypes.STRING(20),
       allowNull: false
@@ -17,8 +21,9 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     sort: {
-      type: DataTypes.INTEGER(10),
-      allowNull: true
+      type: DataTypes.INTEGER(5),
+      allowNull: true,
+      defaultValue:0
     },
     img: {
       type: DataTypes.STRING(255),

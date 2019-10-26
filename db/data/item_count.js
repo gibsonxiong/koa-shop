@@ -24,4 +24,9 @@ let itemCounts = items.map(item => {
     }
 });
 
+let shops = require('./shop');
+itemCounts.forEach(item=>{
+    item.shopId = shops[0].id;
+});
+
 module.exports = itemCounts;

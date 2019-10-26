@@ -21,9 +21,7 @@ router.get('/', tokenMiddleware(), async function (ctx, next) {
       }]
     });
 
-    await Promise.each(rows, async row => {
-      row.item.setDataValue('imgList', row.item.imgList.split(','));
-      
+    await Promise.each(rows, async row => {    
       //限时抢购
       let flash = await flashbuyCtrl.getFlash(row.item.flashbuyId, row.item.id, row.skuId);
 

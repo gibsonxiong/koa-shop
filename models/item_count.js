@@ -2,6 +2,10 @@
 
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('item_count', {
+    shopId:{
+      type: DataTypes.INTEGER(10),
+      allowNull: true
+    },
     itemId: {
       type: DataTypes.INTEGER(11),
       allowNull: false,

@@ -8,6 +8,10 @@ module.exports = function (sequelize, DataTypes) {
       primaryKey: true,
       autoIncrement: true
     },
+    shopId:{
+      type: DataTypes.INTEGER(10),
+      allowNull: true
+    },
     name: {
       type: DataTypes.STRING(100),
       allowNull: false
@@ -23,6 +27,14 @@ module.exports = function (sequelize, DataTypes) {
     imgList: {
       type: DataTypes.STRING(2000),
       allowNull: false,
+      get(){
+        let value = (this.getDataValue('imgList') || '').split(',').filter(item=>!!item)
+        return value;
+      },
+      set(val){
+          let value =  (val || []).join(',');
+          this.setDataValue('imgList', value)
+      },
     },
     propvalueList: {
       type: DataTypes.STRING(5000),

@@ -10,7 +10,11 @@ router.get('/', async function (ctx, next) {
     let rows = await models.category.findAll({
       where:{
         parentId:null
-      }
+      },
+      order:[
+        ['sort','desc'],
+        ['id','asc']
+      ]
     });
 
     ctx.sendRes(rows);
@@ -25,7 +29,11 @@ router.get('/:categoryId', async function (ctx, next) {
     let rows = await models.category.findAll({
       where:{
         parentId:id
-      }
+      },
+      order:[
+        ['sort','desc'],
+        ['id','asc']
+      ]
     });
 
     ctx.sendRes(rows);

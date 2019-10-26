@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "node bin/www",
-    "dev": "./node_modules/.bin/nodemon bin/www",
+    "start": "cross-env debug=1 node bin/www",
+    "dev": "cross-env debug=1 ./node_modules/.bin/nodemon bin/www",
     "prd": "pm2 start bin/www",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -43,6 +43,7 @@
     "urlencode": "^1.1.0"
   },
   "devDependencies": {
+    "cross-env": "^6.0.3",
     "nodemon": "^1.8.1"
   }
 }

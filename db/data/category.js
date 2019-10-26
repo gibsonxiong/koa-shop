@@ -1,4 +1,6 @@
-module.exports = [
+
+
+let categorys = [
     {
         "id": 1,
         "name": "女装"
@@ -1975,158 +1977,12 @@ module.exports = [
         "img": "https://gw.alicdn.com/tps/TB1.BgaMVXXXXaAXXXXXXXXXXXX-375-375.jpg_140x10000Q75.jpg"
     },
 
-    //17
-
-
-    {
-        "id": 1200,
-        "name": "男子健身",
-        "parentId": 17,
-        "img": "https://gw.alicdn.com/tps/TB2rdaUdvBNTKJjy1zdXXaScpXa_!!789423716-0-beehive-scenes.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1201,
-        "name": "女用健身",
-        "parentId": 17,
-        "img": "https://gw.alicdn.com/tps/TB10aYGkDdYBeNkSmLySutfnVXa.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1202,
-        "name": "男士减肚腩",
-        "parentId": 17,
-        "img": "https://gw.alicdn.com/tps/TB2KEkjjB0lpuFjSszdXXcdxFXa_!!1093713845.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1203,
-        "name": "女生瘦身",
-        "parentId": 17,
-        "img": "https://gw.alicdn.com/tps/TB1aue0PFXXXXboXpXXSutbFXXX.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1204,
-        "name": "女生健身",
-        "parentId": 17,
-        "img": "https://gw.alicdn.com/tps/TB1eOPedxjaK1RjSZKzSutVwXXa.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1205,
-        "name": "男子跑步",
-        "parentId": 17,
-        "img": "https://gw.alicdn.com/tps/TB15xyMXr1YBuNjSszhSuwUsFXa.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1206,
-        "name": "男士训练服",
-        "parentId": 17,
-        "img": "https://gw.alicdn.com/tps/TB2nQ3chlNkpuFjy0FaXXbRCVXa_!!0-juitemmedia.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1207,
-        "name": "女子训练",
-        "parentId": 17,
-        "img": "https://gw.alicdn.com/tps/TB1tGEUc2BNTKJjSszbSuuFrFXa.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1208,
-        "name": "型男场所",
-        "parentId": 17,
-        "img": "https://gw.alicdn.com/tps/TB2AoYVjOpnpuFjSZFkXXc4ZpXa_!!0-juitemmedia.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1209,
-        "name": "女子瑜伽",
-        "parentId": 17,
-        "img": "https://gw.alicdn.com/tps/TB2macGtFXXXXchXXXXXXXXXXXX_!!0-dgshop.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1210,
-        "name": "女子跑步",
-        "parentId": 17,
-        "img": "https://gw.alicdn.com/tps/TB1LA7pvnqWBKNjSZFASuunSpXa.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1211,
-        "name": "女生运动",
-        "parentId": 17,
-        "img": "https://gw.alicdn.com/tps/TB2rMR0vGQoBKNjSZJnXXaw9VXa_!!22-0-luban.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1212,
-        "name": "女子健身",
-        "parentId": 17,
-        "img": "https://gw.alicdn.com/tps/TB1VQTPdTlYBeNjSszcSuvwhFXa.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1213,
-        "name": "男运动健身",
-        "parentId": 17,
-        "img": "https://gw.alicdn.com/tps/TB1HMJ9dY1YBuNjSszhSuwUsFXa.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1214,
-        "name": "女士塑形",
-        "parentId": 17,
-        "img": "https://gw.alicdn.com/tps/TB2LLtsspXXXXcBXpXXXXXXXXXX_!!0-dgshop.jpg_140x10000Q75.jpg"
-    },
-
-    //18
-
-    {
-        "id": 1300,
-        "name": "国产腕表",
-        "parentId": 18,
-        "img": "https://gw.alicdn.com/tps/TB2sGo6wXkoBKNjSZFkXXb4tFXa_!!167-0-luban.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1301,
-        "name": "手饰",
-        "parentId": 18,
-        "img": "https://gw.alicdn.com/tps/TB2PtLHBKSSBuNjy0FlXXbBpVXa_!!1709365317-0-daren.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1302,
-        "name": "欧美腕表",
-        "parentId": 18,
-        "img": "https://gw.alicdn.com/tps/TB1Qb4OdQyWBuNjy0FpSuussXXa.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1303,
-        "name": "瑞士腕表",
-        "parentId": 18,
-        "img": "https://gw.alicdn.com/tps/TB2Gpx5fwKTBuNkSne1XXaJoXXa_!!720824198-0-beehive-scenes.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1304,
-        "name": "颈饰",
-        "parentId": 18,
-        "img": "https://gw.alicdn.com/tps/TB1gl2SmBHH8KJjy0FbSuwqlpXa.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1305,
-        "name": "日韩腕表",
-        "parentId": 18,
-        "img": "https://gw.alicdn.com/tps/TB2I_yWdduO.eBjSZFCXXXULFXa_!!2421503542.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1306,
-        "name": "太阳眼镜",
-        "parentId": 18,
-        "img": "https://gw.alicdn.com/tps/TB1lb2osf1TBuNjy0FjSuujyXXa.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1307,
-        "name": "手饰",
-        "parentId": 18,
-        "img": "https://gw.alicdn.com/tps/TB2mTCjvHuWBuNjSszgXXb8jVXa_!!1586185912-0-daren.jpg_140x10000Q75.jpg"
-    },
-    {
-        "id": 1308,
-        "name": "手饰",
-        "parentId": 18,
-        "img": "https://gw.alicdn.com/tps/TB25WOBHbGYBuNjy0FoXXciBFXa_!!1935848496-0-beehive-scenes.jpg_140x10000Q75.jpg"
-    }
-
-
-
 
 ];
+
+let shops = require('./shop');
+categorys.forEach(category=>{
+    category.shopId = shops[0].id;
+});
+
+module.exports = categorys;

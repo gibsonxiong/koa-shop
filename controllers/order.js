@@ -73,7 +73,6 @@ const orderCtrl = {
             itemFee += price * quantity;
             itemCount += quantity;
 
-            item.setDataValue('imgList', item.imgList.split(','));
             orderItems.push({
                 item,
                 sku,
@@ -210,7 +209,7 @@ const orderCtrl = {
                 let price = orderItem.flash && orderItem.flash.status == 1 ? orderItem.flash.sku.flashPrice : orderItem.sku.price;
                 orderItemData.push({
                     orderId: orderRow.id,
-                    itemImg: orderItem.item.getDataValue('imgList')[0],
+                    itemImg: orderItem.item.imgList[0],
                     itemId: orderItem.item.id,
                     skuId: orderItem.sku.id,
                     itemName: orderItem.item.name,

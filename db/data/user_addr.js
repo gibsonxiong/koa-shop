@@ -12,4 +12,9 @@ let user_addrs = [{
     "isDefault": true
 }]
 
+let shops = require('./shop');
+user_addrs.forEach(item=>{
+    item.shopId = shops[0].id;
+});
+
 module.exports = user_addrs;

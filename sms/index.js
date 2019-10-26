@@ -24,6 +24,9 @@ const config = require('../config');
 
 //全球
 exports.sendSms = async function (phone, smsCode,type) {
+    //测试环境不需要真的发
+    if(process.env.debug) return true;
+
     let template = `您的验证码是${smsCode}，有效时间为5分钟，请勿告知他人！`;
     let url = `https://api.globalsent.com/send?access_key=${config.sms.access_key}&mobile=86${phone}&content=${urlencode(template)}`;
 

@@ -14,4 +14,9 @@ let user_coupons = [{
 }
 ];
 
+let shops = require('./shop');
+user_coupons.forEach(item=>{
+    item.shopId = shops[0].id;
+});
+
 module.exports = user_coupons;

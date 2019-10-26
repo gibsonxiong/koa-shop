@@ -31,8 +31,15 @@ function getArr(dd, id) {
     ];
 }
 
-module.exports = [
+let  flashbuys = [
     ...getArr(12, 1),
     ...getArr(13, 4),
     ...getArr(14, 7),
 ]
+
+let shops = require('./shop');
+flashbuys.forEach(item=>{
+    item.shopId = shops[0].id;
+});
+
+module.exports = flashbuys;

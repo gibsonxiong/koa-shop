@@ -23,77 +23,6 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
       pageSize,
       pageIndex
     } = query;
-    // let where = {};
-    // let order = null;
-    // if (categoryId) {
-    //   where.categoryId = categoryId;
-    // }
-    // if (searchText) {
-    //   where.name = {
-    //     $like: `%${searchText}%`
-    //   }
-
-    //   //保存搜索历史
-    //   if (user) {
-    //     let [searchHistory, created] = await models.search_history.findCreateFind({
-    //       defaults: {
-    //         userId: user.id,
-    //         keywords: searchText,
-    //       },
-    //       where: {
-    //         userId: user.id
-    //       }
-    //     });
-
-    //     if (!created) {
-    //       let keywords = searchHistory.keywords.split(',');
-    //       keywords.unshift(searchText);
-    //       keywords = utils.uniqueArray(keywords).slice(0, 10).join(',');
-    //       let res = searchHistory.update({
-    //         keywords
-    //       });
-
-    //     }
-    //   }
-
-    // }
-
-    // if (query.order == 'normal') {
-
-    // } else if (query.order == 'sale') {
-    //   order = [
-    //     [
-    //       [
-    //         models.item_count,
-    //         'saleCount',
-    //         'DESC'
-    //       ]
-    //     ]
-    //   ]
-    // }
-    // pageSize = Number(pageSize || 10);
-    // let rows = await models.item.findAll({
-    //   where,
-    //   include: [{
-    //     model: models.sku
-    //   }, {
-    //     model: models.item_count,
-    //   }],
-    //   order,
-    //   limit: pageSize,
-    //   offset: ((pageIndex || 1) - 1) * pageSize,
-    // });
-
-    // await Promise.each(rows, async row => {
-    //   row.dataValues.imgList = row.imgList.split(',');
-
-    //   let prices = row.dataValues.skus.map(item => item.price);
-    //   row.dataValues.minPrice = prices.length === 0 ? 0 : Math.min(...prices);
-    //   row.dataValues.maxPrice = prices.length === 0 ? 0 : Math.max(...prices);
-    // });
-
-    // ctx.sendRes(rows);
-
 
     pageSize = Number(pageSize || 10);
     query.order = query.order || 'normal';
@@ -233,8 +162,6 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
     let result = dbUtils.groupRows(rows, 'skus');
 
     await Promise.each(result,async row => {
-      row.imgList = row.imgList.split(',');
-
       let prices = row.skus.map(item => item.price);
       row.minPrice = prices.length === 0 ? 0 : Math.min(...prices);
       row.maxPrice = prices.length === 0 ? 0 : Math.max(...prices);
@@ -288,7 +215,6 @@ router.get('/:itemId', tokenMiddleware(false), async function (ctx) {
 
     if (!row) throw new Error('没找到数据');
 
-    row.dataValues.imgList = row.imgList.split(',');
     let propnames = [];
     let propvalues = [];
     row.propvalueList.split('|').forEach(item => {

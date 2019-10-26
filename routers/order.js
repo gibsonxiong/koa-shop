@@ -139,7 +139,6 @@ router.post('/build', tokenMiddleware(), async function (ctx, next) {
       itemFee += price * quantity;
       itemCount += quantity;
 
-      item.setDataValue('imgList', item.imgList.split(','));
       orderItems.push({
         item,
         sku,

@@ -17,6 +17,11 @@ async function init() {
         dataMap[name] = require(_path);
     });
 
+    //shop
+    await models.shop.bulkCreate(dataMap.shop);
+    await models.shop_user.bulkCreate(dataMap.shop_user);
+    // \shop
+
     await models.category.bulkCreate(dataMap.category);
 
     await models.propname.bulkCreate(dataMap.propname);

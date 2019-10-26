@@ -20,6 +20,7 @@ const bcryptUtils = require('../bcrypt-utils');
 
 const { geetest, gtValidatePromise, gtRegisterPromise } = require('../geetest');
 
+
 function genNickname() {
   return 'v_' + (+new Date());
 }
@@ -76,7 +77,8 @@ router.post('/getSmsCode', async function (ctx, next) {
     await redis.expireAsync(key, 5 * 60);
 
     await sms.sendSms(phone, smsCode, type);
-    console.log(key, smsCode);
+
+    console.log('短信验证码', key, smsCode);
     ctx.sendRes(null, 0, '发送验证码成功');
   } catch (err) {
     ctx.sendRes(null, -1, err.message);
@@ -269,6 +271,8 @@ router.post('/resetPassword', async function (ctx, next) {
     });
 
     if (!user) throw new Error('该用户不存在');
+
+    password = await bcryptUtils.hash(password);
 
     await user.update({
       password
@@ -469,7 +473,7 @@ router.post('/address/:addressId', tokenMiddleware(), async function (ctx, next)
   }
 });
 
-//修改地址
+//删除地址
 router.delete('/address/:addressId', tokenMiddleware(), async function (ctx, next) {
   try {
     let user = ctx.user;
@@ -599,30 +603,5 @@ router.delete('/searchs', tokenMiddleware(), async function (ctx, next) {
   }
 });
 
-// //图片处理
-// router.get('/img', async function (ctx, next) {
-//   try {
-//     let {quality = 100, width, height} = ctx.query;
-//     let resizeOptions = {};
-//     if(width){
-//       resizeOptions.width = Number(width);
-//     }
-//     if(height){
-//       resizeOptions.height = Number(height);
-//     }
-//     let data = await sharp('public/upload/temp/1551667088744-Lighthouse.jpg')
-//       .resize(resizeOptions)
-//       .jpeg({
-//         quality: Number(quality)
-//       })
-//       .toBuffer()
-
-//       ctx.type = 'jpg';
-//       ctx.body = data;
-
-//   } catch (err) {
-//     ctx.sendRes(null, -1, err.message);
-//   }
-// });
 
 module.exports = router

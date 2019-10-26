@@ -11,7 +11,7 @@ function getData(itemId) {
     return {
         id:item.id,
         itemId: item.id,
-        itemImg: item.imgList.split(',')[0],
+        itemImg: item.imgList[0],
         itemName: item.name,
         itemPrice,
         itemMaxPrice,
@@ -44,5 +44,10 @@ add(6,[9,15,16]);
 add(7,[17,18]);
 add(8,[24,25,26]);
 add(9,[27,28]);
+
+let shops = require('./shop');
+flashbuyItems.forEach(item=>{
+    item.shopId = shops[0].id;
+});
 
 module.exports = flashbuyItems;

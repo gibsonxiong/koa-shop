@@ -8,6 +8,10 @@ module.exports = function (sequelize, DataTypes) {
       primaryKey: true,
       autoIncrement: true
     },
+    shopId:{
+      type: DataTypes.INTEGER(10),
+      allowNull: true
+    },
     refundNo:{
       type: DataTypes.STRING(30),
       allowNull: false,

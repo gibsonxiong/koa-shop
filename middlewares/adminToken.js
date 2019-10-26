@@ -1,6 +1,5 @@
 const db = require('../db');
 const core = require('../core');
-const UserModel = db.import('../models/user');
 
 module.exports = function (checkToken = true) {
     return async (ctx, next) => {
@@ -36,10 +35,10 @@ module.exports = function (checkToken = true) {
         }
 
         try {
-            let user = await UserModel.findById(decoded.id);
+            let shopUser = await db.models.shop_user.findById(decoded.id);
 
-            if (user) {
-                ctx.user = user;
+            if (shopUser) {
+                ctx.shopUser = shopUser;
             } else {
                 await sendRes(null, 98);
                 return;
