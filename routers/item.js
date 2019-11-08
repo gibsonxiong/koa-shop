@@ -33,10 +33,13 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
       where.push(`\`item\`.\`name\` like '%${searchText}%'`);
     }
     if (categoryId) {
+      
+
       where.push(`\`item\`.\`categoryId\` = ${categoryId}`);
     }
     where = where.join('and');
     let rows;
+    //综合排序
     if (query.order == 'normal') {
       rows = await db.query(`
       SELECT 
@@ -78,7 +81,9 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
       `, {
           nest: true
         });
-    } else if (query.order == 'sale') {
+    } 
+    //销量排序
+    else if (query.order == 'sale') {
       rows = await db.query(`
     SELECT 
       \`item\`.*,
@@ -116,7 +121,9 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
     `, {
           nest: true
         });
-    } else if (query.order == 'priceAsc' || query.order == 'priceDesc') {
+    } 
+    //价格
+    else if (query.order == 'priceAsc' || query.order == 'priceDesc') {
       rows = await db.query(`
       SELECT 
         \`item\`.*,
@@ -162,6 +169,7 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
     let result = dbUtils.groupRows(rows, 'skus');
 
     await Promise.each(result,async row => {
+      row.imgList = row.imgList.split(',')
       let prices = row.skus.map(item => item.price);
       row.minPrice = prices.length === 0 ? 0 : Math.min(...prices);
       row.maxPrice = prices.length === 0 ? 0 : Math.max(...prices);
