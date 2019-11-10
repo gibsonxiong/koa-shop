@@ -23,7 +23,8 @@ module.exports = function(sequelize, DataTypes) {
     status:{
       type: DataTypes.STRING(2),
       allowNull: false,
-      defaultValue: '1'
+      defaultValue: '1',
+      comment:'订单状态: 1-待支付 2-待发货 3-待收货 4-已完成（未评价） 5-已完成（已评价） 9-已取消'
     },
     title: {
       type: DataTypes.STRING(255),
@@ -99,11 +100,11 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.DATE,
       allowNull: true,
     },
-    deliverCompany:{
-      type: DataTypes.STRING(20),
+    deliverCompanyId:{
+      type: DataTypes.INTEGER(11),
       allowNull: true
     },
-    deliverPostId:{
+    deliverPostNo:{
       type: DataTypes.STRING(100),
       allowNull: true
     },

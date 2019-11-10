@@ -21,12 +21,11 @@ async function init() {
     await models.shop.bulkCreate(dataMap.shop);
     await models.shop_user.bulkCreate(dataMap.shop_user);
     // \shop
-
-    await models.category.bulkCreate(dataMap.category);
-
     await models.propname.bulkCreate(dataMap.propname);
 
     await models.propvalue.bulkCreate(dataMap.propvalue);
+
+    await models.category.bulkCreate(dataMap.category);
 
     await models.item.bulkCreate(dataMap.item);
 

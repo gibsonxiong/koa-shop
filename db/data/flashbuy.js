@@ -1,45 +1,56 @@
-let registerStartTime = new Date(`2019-3-9 00:00:00`);
-let registerEndTime = new Date(`2019-3-9 23:59:59`);
+const moment = require('moment');
 
-function getArr(dd, id) {
-    let publicTime = new Date(`2019-3-${dd - 1} 00:00:00`);
+function getStartDay(){
+    return moment().startOf('day');
+}
+
+let publicTime = getStartDay().subtract(1,'days');
+let registerStartTime = getStartDay();
+let registerEndTime = moment().endOf('day');
+let id = 1;
+
+function getArr(index) {
     return [
         {
-            id: id,
+            id: id++,
             registerStartTime,
             registerEndTime,
             publicTime,
-            startTime: new Date(`2019-3-${dd} 08:00:00`),
-            endTime: new Date(`2019-3-${dd + 3} 08:00:00`)
+            startTime: getStartDay().add(index,'days').add(8,'hours'),
+            endTime: getStartDay().add(index + 3,'days').add(8,'hours')
         },
         {
-            id: id + 1,
+            id: id++,
             registerStartTime,
             registerEndTime,
             publicTime,
-            startTime: new Date(`2019-3-${dd} 12:00:00`),
-            endTime: new Date(`2019-3-${dd + 3} 12:00:00`)
+            startTime: getStartDay().add(index,'days').add(12,'hours'),
+            endTime: getStartDay().add(index + 3,'days').add(12,'hours')
         },
         {
-            id: id + 2,
+            id: id++,
             registerStartTime,
             registerEndTime,
             publicTime,
-            startTime: new Date(`2019-3-${dd} 18:00:00`),
-            endTime: new Date(`2019-3-${dd + 3} 18:00:00`)
+            startTime: getStartDay().add(index,'days').add(18,'hours'),
+            endTime: getStartDay().add(index + 3,'days').add(18,'hours')
         },
     ];
 }
 
-let  flashbuys = [
-    ...getArr(12, 1),
-    ...getArr(13, 4),
-    ...getArr(14, 7),
-]
+
+
+let  flashbuys = []
+
+for(let i =0;i<3;i++){
+    flashbuys = flashbuys.concat(getArr(i));
+}
 
 let shops = require('./shop');
 flashbuys.forEach(item=>{
     item.shopId = shops[0].id;
 });
+
+console.log(flashbuys)
 
 module.exports = flashbuys;

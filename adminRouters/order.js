@@ -4,6 +4,7 @@ const {
   models
 } = db;
 const adminToken = require('../middlewares/adminToken');
+const validate = require('../validate');
 
 router.prefix('/orders')
 
@@ -33,44 +34,27 @@ router.get('/', adminToken(), async function (ctx, next) {
   }
 })
 
-//新增
-router.post('/',adminToken(), async function (ctx) {
-  try {
-    let { shopId} = ctx.shopUser;
-    let body = ctx.request.body;
+//detail
+router.get('/:orderId', adminToken(), async function (ctx, next) {
+  try{
+    let { shopId } = ctx.shopUser;
+    let {orderId} = ctx.params;
 
-    let row = await models.order.create({
-      ...body,
-      shopId
+    let row = await models.order.find({
+      where:{
+        id:orderId,
+        shopId
+      },
+      include:[
+        {model:models.order_item}
+      ]
     });
 
     ctx.sendRes(row);
-  } catch (err) {
-    ctx.sendRes(null, -1, err.message);
+  }catch(err){
+    ctx.sendRes(null,-1, err.message);
   }
-});
-
-//修改
-router.post('/:id',adminToken(), async function (ctx) {
-  try {
-    let { shopId} = ctx.shopUser;
-    let { id } = ctx.params;
-    let body = ctx.request.body;
-
-    await models.order.update({
-      ...body
-    }, {
-      where: {
-        id,
-        shopId
-      }
-    });
-
-    ctx.sendRes(null,0, '修改成功');
-  } catch (err) {
-    ctx.sendRes(null, -1, err.message);
-  }
-});
+})
 
 //删除
 router.delete('/:id',adminToken(), async function (ctx) {
@@ -93,6 +77,55 @@ router.delete('/:id',adminToken(), async function (ctx) {
   }
 });
 
+//发货
+router.post('/:orderId/deliver',adminToken(), async function (ctx, next) {
+  try {
+    let { shopId} = ctx.shopUser;
+    let {
+      orderId
+    } = ctx.params;
+    let {
+      deliverCompanyId,
+      deliverPostNo
+    } = ctx.request.body;
+
+    let [invalid, msg] = new validate.Validator({
+      deliverCompanyId,
+      deliverPostNo
+    }, {
+        'deliverCompanyId': [{
+          name: 'required',
+          msg: '物流公司不能为空'
+        }],
+        'deliverPostNo': [{
+          name: 'required',
+          msg: '物流单号不能为空'
+        }],
+      }).validate();
+
+    if (invalid) throw new Error(msg);
+
+    let order = await models.order.findById(orderId, {
+      include: [{
+        model: models.order_item
+      }]
+    });
+
+    if (!order) throw new Error('该订单不存在');
+    if (order.status != '2') throw new Error('订单状态异常');
+
+    await order.update({
+      status: '3',
+      deliverCompanyId,
+      deliverPostNo,
+      deliverTime: Date.now()
+    });
+
+    ctx.sendRes(null, 0, '订单发货成功');
+  } catch (err) {
+    ctx.sendRes(null, -1, err.message);
+  }
+});
 
 
 module.exports = router

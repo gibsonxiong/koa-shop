@@ -33,9 +33,14 @@ router.get('/', tokenMiddleware(false), async function (ctx) {
       where.push(`\`item\`.\`name\` like '%${searchText}%'`);
     }
     if (categoryId) {
-      
-
-      where.push(`\`item\`.\`categoryId\` = ${categoryId}`);
+      let category = await models.category.findById(categoryId,{
+        include:[
+          {model:models.category, attributes:['id']}
+        ]
+      });
+  
+      let ids = [category.id].concat(category.categories.map(item=>item.id));
+      where.push(`\`item\`.\`categoryId\` in (${ids.join(',')})`);
     }
     where = where.join('and');
     let rows;

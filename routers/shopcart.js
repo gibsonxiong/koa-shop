@@ -48,12 +48,13 @@ router.put('/', tokenMiddleware(), async function (ctx, next) {
       where:{
         userId: user.id,
         itemId,
+        shopId:user.shopId,
         skuId,
       }
     });
 
 
-    //该商品之前不在购物车
+    //该商品之前在购物车
     if(row){
       await row.increment('quantity',{
         by:quantity
@@ -61,6 +62,7 @@ router.put('/', tokenMiddleware(), async function (ctx, next) {
     }else{
       row = await models.shopcart.create({
         userId: user.id,
+        shopId:user.shopId,
         itemId,
         skuId,
         quantity
@@ -86,7 +88,8 @@ router.delete('/:shopcartId', tokenMiddleware(), async function (ctx, next) {
     let number = await models.shopcart.destroy({
       where: {
         id: shopcartId,
-        userId: user.id
+        userId: user.id,
+        shopId:user.shopId,
       }
     });
 
@@ -118,7 +121,8 @@ router.post('/:shopcartId', tokenMiddleware(), async function (ctx, next) {
     let [number] = await models.shopcart.update(updatedValue, {
       where: {
         id: shopcartId,
-        userId: user.id
+        userId: user.id,
+        shopId:user.shopId,
       }
     });
 

@@ -23,7 +23,8 @@ router.get('/', tokenMiddleware(), async function (ctx, next) {
       status
     } = ctx.query;
     let where = {
-      userId: user.id
+      userId: user.id,
+      shopId:user.shopId
     };
 
     if (status) {
@@ -58,6 +59,7 @@ router.get('/:orderId', tokenMiddleware(), async function (ctx, next) {
       where: {
         id: orderId,
         userId: user.id,
+        shopId:user.shopId
       },
       include: [{
         model: models.order_item
@@ -89,7 +91,8 @@ router.post('/build', tokenMiddleware(), async function (ctx, next) {
       address = await models.user_addr.findOne({
         where: {
           id:addressId,
-          userId: user.id
+          userId: user.id,
+          shopId:user.shopId
         }
       });
     }
@@ -203,7 +206,7 @@ router.post('/create', tokenMiddleware(), async function (ctx, next) {
       params
     } = ctx.request.body;
 
-    let res = await orderCtrl.create(user.id, params);
+    let res = await orderCtrl.create(user.id, user.shopId, params);
 
     ctx.sendResObject(res);
 
@@ -255,7 +258,8 @@ router.post('/:orderId/payCallback', tokenMiddleware(), async function (ctx, nex
     let order = await models.order.findOne({
       where: {
         id:orderId,
-        userId: user.id
+        userId: user.id,
+        shopId:user.shopId
       },
       include: [{
         model: models.order_item
@@ -293,7 +297,8 @@ router.get('/:orderId/orderPayStatus', tokenMiddleware(), async function (ctx, n
     let row = await models.order.findOne({
       where: {
         id: orderId,
-        userId: user.id
+        userId: user.id,
+        shopId:user.shopId
       }
     });
 
@@ -324,55 +329,6 @@ router.post('/:orderId/remindDeliver', tokenMiddleware(), async function (ctx, n
   }
 });
 
-//发货(商家用)
-router.post('/:orderId/deliver', async function (ctx, next) {
-  try {
-    let {
-      orderId
-    } = ctx.params;
-    let {
-      deliverCompany,
-      deliverPostId
-    } = ctx.request.body;
-
-    let [invalid, msg] = new validate.Validator({
-      deliverCompany,
-      deliverPostId
-    }, {
-        'deliverCompany': [{
-          name: 'required',
-          msg: '物流公司不能为空'
-        }],
-        'deliverPostId': [{
-          name: 'required',
-          msg: '物流单号不能为空'
-        }],
-      }).validate();
-
-    if (invalid) throw new Error(msg);
-
-    let order = await models.order.findById(orderId, {
-      include: [{
-        model: models.order_item
-      }]
-    });
-
-    if (!order) throw new Error('该订单不存在');
-    if (order.status != '2') throw new Error('订单状态异常');
-
-    await order.update({
-      status: '3',
-      deliverCompany,
-      deliverPostId,
-      deliverTime: Date.now()
-    });
-
-    ctx.sendRes(null, 0, '订单发货成功');
-  } catch (err) {
-    ctx.sendRes(null, -1, err.message);
-  }
-});
-
 router.get('/:orderId/getDeliver', tokenMiddleware(), async function (ctx, next) {
   try {
     let user = ctx.user;
@@ -383,7 +339,8 @@ router.get('/:orderId/getDeliver', tokenMiddleware(), async function (ctx, next)
     let order = await models.order.findOne({
       where: {
         id:orderId,
-        userId: user.id
+        userId: user.id,
+        shopId:user.shopId
       }
 
     });
@@ -398,14 +355,14 @@ router.get('/:orderId/getDeliver', tokenMiddleware(), async function (ctx, next)
 
     let deliverCompany = await models.deliver.findOne({
       where: {
-        code: order.deliverCompany
+        id: order.deliverCompanyId
       }
     });
 
     let res = (await axios.get(`https://www.kuaidi100.com/query`, {
       params: {
-        type: order.deliverCompany,
-        postid: order.deliverPostId
+        type: deliverCompany.code,
+        postid: order.deliverPostNo
       }
     })).data;
 
@@ -417,7 +374,7 @@ router.get('/:orderId/getDeliver', tokenMiddleware(), async function (ctx, next)
     ctx.sendRes({
       firstOrderItem,
       deliverCompany,
-      deliverPostId: order.deliverPostId,
+      deliverPostNo: order.deliverPostNo,
       state: res.state,
       detailData: detailData
     });
@@ -440,7 +397,8 @@ router.post('/:orderId/confirmReceive', tokenMiddleware(), async function (ctx, 
     let order = await models.order.findOne({
       where: {
         id:orderId,
-        userId: user.id
+        userId: user.id,
+        shopId:user.shopId
       },
       include: [{
         model: models.order_item
@@ -477,44 +435,7 @@ router.post('/:orderId/cancel', tokenMiddleware(), async function (ctx, next) {
       cancelReason
     } = ctx.request.body;
 
-    // let order = await models.order.findOne({
-    //   where: {
-    //     id:orderId,
-    //     userId: user.id
-    //   },
-    //   include: [{
-    //     model: models.order_item
-    //   }]
-    // });
-
-    // if (!order) throw new Error('该订单不存在');
-    // if (order.status !== '1') throw new Error('订单状态异常');
-
-    // await db.transaction(async (t) => {
-
-    //   await order.update({
-    //     status: '9',
-    //     endTime: Date.now(),
-    //     cancelReason
-    //   }, { transaction: t });
-
-    //   await Promise.each(order.order_items, async orderItem => {
-
-    //     //恢复库存
-    //     let sku = await models.sku.findById(orderItem.skuId, {
-    //       transaction: t
-    //     });
-
-    //     if (!sku) return;
-
-    //     await sku.increment('quantity', {
-    //       by: orderItem.quantity,
-    //       transaction: t
-    //     });
-    //   });
-    // });
-
-    let res = await orderCtrl.cancel(user.id, orderId,cancelReason);
+    let res = await orderCtrl.cancel(user.id, user.shopId, orderId,cancelReason);
 
     ctx.sendResObject(res);
 
@@ -536,7 +457,8 @@ router.delete('/:orderId', tokenMiddleware(), async function (ctx, next) {
     let num = await models.order.destroy({
       where: {
         id: orderId,
-        userId: user.id
+        userId: user.id,
+        shopId:user.shopId
       }
     });
 
@@ -561,7 +483,8 @@ router.put('/:orderId/rate', tokenMiddleware(), async function (ctx, next) {
     let num = await models.order.destroy({
       where: {
         id: orderId,
-        userId: user.id
+        userId: user.id,
+        shopId:user.shopId
       }
     });
 

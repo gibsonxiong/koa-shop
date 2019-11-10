@@ -3,13 +3,19 @@ const db = require('../db');
 const {
   models
 } = db;
+const adminToken = require('../middlewares/adminToken');
 
 router.prefix('/categorys')
 
 //获取所有分类
-router.get('/', async function (ctx, next) {
+router.get('/', adminToken(), async function (ctx, next) {
   try{
+    let shopUser = ctx.shopUser;
+
     let rows = await models.category.findAll({
+      where:{
+        shopId:shopUser.shopId
+      },
       order:[
         ['parentId','asc'],
         ['sort','desc'],

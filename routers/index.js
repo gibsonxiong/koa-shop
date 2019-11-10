@@ -9,6 +9,7 @@ const {
   upload,
   getUploadPath
 } = require('../utils/upload');
+const config = require('../config');
 // const sharp = require('sharp');
 const utils = require('../utils');
 const validate = require('../validate');
@@ -26,9 +27,7 @@ function genNickname() {
 }
 
 router.get('/', async (ctx, next) => {
-  await ctx.render('index', {
-    title: '欢迎访问VueShop API'
-  })
+  ctx.body = `欢迎访问${config.appName} API`;
 });
 
 //发送验证码

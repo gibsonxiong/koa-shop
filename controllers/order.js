@@ -10,7 +10,7 @@ let {scheduleCache} = require('../utils/schedule');
 
 //提交订单
 const orderCtrl = {
-    async create(userId, params) {
+    async create(userId, shopId, params) {
         if (!userId) throw new Error('未找到该用户');
 
         let {
@@ -31,6 +31,7 @@ const orderCtrl = {
             address = await models.user_addr.findOne({
                 where: {
                     userId,
+                    shopId,
                     isDefault: true
                 }
             });
@@ -40,7 +41,8 @@ const orderCtrl = {
         if (!address) {
             address = await models.user_addr.findOne({
                 where: {
-                    userId
+                    userId,
+                    shopId
                 }
             });
         }
@@ -85,6 +87,7 @@ const orderCtrl = {
         let couponList = await models.user_coupon.findAll({
             where: {
                 userId,
+                shopId,
                 used: false
             },
             include: [{
@@ -120,6 +123,7 @@ const orderCtrl = {
             //主订单
             orderRow = await models.order.create({
                 userId,
+                shopId,
                 orderNo: utils.genOrderNo(),
                 status: '1',
                 title: `商品订单(${itemCount}件)`,
@@ -148,7 +152,8 @@ const orderCtrl = {
                         id: {
                             $in: shopcartIds
                         },
-                        userId
+                        userId,
+                        shopId
                     },
                     transaction: t
                 });
@@ -227,7 +232,7 @@ const orderCtrl = {
             let endDate = utils.adjustDate(orderRow.createTime, 's', 10);
             scheduleCache[`cancel_${orderRow.id}`] = schedule.scheduleJob(endDate, function () {
                 try {
-                    let res = orderCtrl.cancel(userId, orderRow.id, '系统自动取消');
+                    let res = orderCtrl.cancel(userId, shopId, orderRow.id, '系统自动取消');
 
                     if (res.code !== 0) throw new Error(res.message);
                 } catch (err) {
@@ -250,11 +255,12 @@ const orderCtrl = {
     },
 
     //取消订单
-    async cancel(userId, orderId, cancelReason) {
+    async cancel(userId, shopId, orderId, cancelReason) {
         let order = await models.order.findOne({
             where: {
                 id: orderId,
-                userId: userId
+                userId: userId,
+                shopId
             },
             include: [{
                 model: models.order_item

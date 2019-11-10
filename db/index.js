@@ -82,6 +82,10 @@ models.item.belongsTo(models.category, {
     foreignKey: 'categoryId'
 });
 
+models.category.hasMany(models.category, {
+    foreignKey: 'parentId'
+});
+
 models.footprint.belongsTo(models.item, {
     foreignKey: 'itemId'
 });

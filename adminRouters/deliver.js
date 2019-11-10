@@ -5,7 +5,7 @@ const {
 } = db;
 const adminToken = require('../middlewares/adminToken');
 
-router.prefix('/templates')
+router.prefix('/delivers')
 
 //
 router.get('/', adminToken(), async function (ctx, next) {
@@ -16,7 +16,7 @@ router.get('/', adminToken(), async function (ctx, next) {
     let limit = Number(pageSize || 20);
     let offset = ((Number(pageIndex) || 1) - 1) * pageSize;
 
-    let rows = await models.template.findAndCountAll({
+    let rows = await models.deliver.findAndCountAll({
       where:{
         shopId
       },
@@ -39,7 +39,7 @@ router.post('/',adminToken(), async function (ctx) {
     let { shopId} = ctx.shopUser;
     let body = ctx.request.body;
 
-    let row = await models.template.create({
+    let row = await models.deliver.create({
       ...body,
       shopId
     });
@@ -57,7 +57,7 @@ router.post('/:id',adminToken(), async function (ctx) {
     let { id } = ctx.params;
     let body = ctx.request.body;
 
-    await models.template.update({
+    await models.deliver.update({
       ...body
     }, {
       where: {
@@ -78,7 +78,7 @@ router.delete('/:id',adminToken(), async function (ctx) {
     let { shopId} = ctx.shopUser;
     let {id} = ctx.params;
 
-    let number = await models.template.destroy({
+    let number = await models.deliver.destroy({
       where:{
         id,
         shopId

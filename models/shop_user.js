@@ -10,7 +10,7 @@ module.exports = function(sequelize, DataTypes) {
     },
     shopId:{
       type: DataTypes.INTEGER(11),
-      allowNull: false,
+      allowNull: true,
     },
     shopRoleId:{
       type: DataTypes.INTEGER(11),
